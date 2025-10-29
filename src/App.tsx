@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import EmergencyChat from "./pages/EmergencyChat";
 import ProfileView from "./pages/ProfileView";
 import About from "./pages/About";
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/emergency-chat" element={<EmergencyChat />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />

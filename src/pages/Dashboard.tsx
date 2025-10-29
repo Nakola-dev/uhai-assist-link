@@ -4,15 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, LogOut, User, Heart, Phone, QrCode, MessageSquare } from "lucide-react";
+import { Activity, LogOut, User, Heart, Phone, QrCode, MessageSquare, Building2, Video, ExternalLink, Shield } from "lucide-react";
 import MedicalProfileForm from "@/components/MedicalProfileForm";
 import EmergencyContactsForm from "@/components/EmergencyContactsForm";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [tutorials, setTutorials] = useState<any[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -24,7 +28,20 @@ const Dashboard = () => {
         return;
       }
       setUser(session.user);
+      
+      // Check admin status
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      
+      setIsAdmin(!!roleData);
       setLoading(false);
+      
+      // Fetch organizations and tutorials
+      fetchData();
     };
 
     checkAuth();
@@ -39,6 +56,21 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const fetchData = async () => {
+    const { data: orgs } = await supabase
+      .from("emergency_organizations")
+      .select("*")
+      .order("name");
+    
+    const { data: tuts } = await supabase
+      .from("tutorials")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    setOrganizations(orgs || []);
+    setTutorials(tuts || []);
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -64,10 +96,18 @@ const Dashboard = () => {
             <Activity className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-bold">UhaiLink Dashboard</h1>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex gap-2">
+            {isAdmin && (
+              <Button variant="outline" onClick={() => navigate("/admin")}>
+                <Shield className="h-4 w-4 mr-2" />
+                Admin Panel
+              </Button>
+            )}
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -80,7 +120,7 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
             <TabsTrigger value="profile">
               <User className="h-4 w-4 mr-2" />
               Medical Info
@@ -96,6 +136,14 @@ const Dashboard = () => {
             <TabsTrigger value="emergency">
               <MessageSquare className="h-4 w-4 mr-2" />
               Emergency AI
+            </TabsTrigger>
+            <TabsTrigger value="organizations">
+              <Building2 className="h-4 w-4 mr-2" />
+              Emergency Help
+            </TabsTrigger>
+            <TabsTrigger value="tutorials">
+              <Video className="h-4 w-4 mr-2" />
+              Tutorials
             </TabsTrigger>
           </TabsList>
 
@@ -155,6 +203,105 @@ const Dashboard = () => {
                 >
                   Start Emergency Chat
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="organizations">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  Emergency Organizations
+                </CardTitle>
+                <CardDescription>
+                  Quick access to emergency services and hospitals in Kenya
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {organizations.map((org) => (
+                    <Card key={org.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-lg">{org.name}</CardTitle>
+                          <Badge variant="secondary">{org.type}</Badge>
+                        </div>
+                        <CardDescription>{org.location}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <a 
+                          href={`tel:${org.phone}`}
+                          className="flex items-center gap-2 text-primary hover:underline font-medium"
+                        >
+                          <Phone className="h-4 w-4" />
+                          {org.phone}
+                        </a>
+                        {org.website && (
+                          <a 
+                            href={org.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Visit Website
+                          </a>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tutorials">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="h-5 w-5 text-primary" />
+                  First Aid Tutorials
+                </CardTitle>
+                <CardDescription>
+                  Learn essential first aid skills through video tutorials
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {tutorials.map((tutorial) => (
+                    <Card key={tutorial.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                      {tutorial.thumbnail && (
+                        <div className="aspect-video w-full bg-muted">
+                          <img 
+                            src={tutorial.thumbnail} 
+                            alt={tutorial.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <CardHeader>
+                        <Badge variant="outline" className="w-fit mb-2">
+                          {tutorial.category}
+                        </Badge>
+                        <CardTitle className="text-base">{tutorial.title}</CardTitle>
+                        <CardDescription className="line-clamp-2">
+                          {tutorial.description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => window.open(tutorial.video_url, '_blank')}
+                        >
+                          <Video className="h-4 w-4 mr-2" />
+                          Watch Tutorial
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
