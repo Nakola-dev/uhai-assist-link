@@ -4,12 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, LogOut, User, Heart, Phone, QrCode, MessageSquare, Building2, Video, ExternalLink, Shield } from "lucide-react";
-import MedicalProfileForm from "@/components/MedicalProfileForm";
-import EmergencyContactsForm from "@/components/EmergencyContactsForm";
-import QRCodeDisplay from "@/components/QRCodeDisplay";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Activity,
+  LogOut,
+  AlertCircle,
+  QrCode,
+  Phone,
+  Video,
+  Shield,
+  User,
+  Heart
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { getUserRole } from "@/lib/auth-utils";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -28,19 +35,11 @@ const Dashboard = () => {
         return;
       }
       setUser(session.user);
-      
-      // Check admin status
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      
-      setIsAdmin(!!roleData);
+
+      const role = await getUserRole(session.user.id);
+      setIsAdmin(role === "admin");
       setLoading(false);
-      
-      // Fetch organizations and tutorials
+
       fetchData();
     };
 
@@ -62,7 +61,7 @@ const Dashboard = () => {
       .from("emergency_organizations")
       .select("*")
       .order("name");
-    
+
     const { data: tuts } = await supabase
       .from("tutorials")
       .select("*")
@@ -80,7 +79,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary-light/10 to-accent-light/10">
         <div className="animate-pulse">
           <Activity className="h-12 w-12 text-primary" />
         </div>
@@ -88,22 +87,35 @@ const Dashboard = () => {
     );
   }
 
+  const categories = ["CPR", "Choking", "Burns", "Bleeding", "Snake Bite"];
+  const tutorialsByCategory = categories.map(cat => ({
+    category: cat,
+    tutorials: tutorials.filter(t => t.category === cat)
+  }));
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary-light/10 to-accent-light/10">
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b bg-card/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Activity className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">UhaiLink Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-primary/10">
+              <Activity className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">UhaiLink Dashboard</h1>
+              <p className="text-xs text-muted-foreground">
+                {user?.user_metadata?.full_name || user?.email}
+              </p>
+            </div>
           </div>
           <div className="flex gap-2">
             {isAdmin && (
-              <Button variant="outline" onClick={() => navigate("/admin")}>
+              <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
                 <Shield className="h-4 w-4 mr-2" />
-                Admin Panel
+                Admin
               </Button>
             )}
-            <Button variant="outline" onClick={handleSignOut}>
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>
@@ -111,201 +123,183 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Welcome back!</h2>
-          <p className="text-muted-foreground">
-            Manage your medical profile and emergency information
-          </p>
+      <main className="container mx-auto px-4 py-8 max-w-7xl space-y-8">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 hover:shadow-emergency transition-all cursor-pointer group col-span-full md:col-span-2 lg:col-span-1">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="p-3 rounded-full bg-primary shadow-emergency">
+                  <AlertCircle className="h-8 w-8 text-white animate-pulse" />
+                </div>
+                <Badge variant="destructive" className="text-xs font-bold">
+                  EMERGENCY
+                </Badge>
+              </div>
+              <CardTitle className="text-2xl font-bold mt-4">Get Help Now</CardTitle>
+              <CardDescription className="text-base">
+                AI-powered emergency assistance available 24/7
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() => navigate("/emergency-chat")}
+                size="lg"
+                className="w-full bg-primary hover:bg-primary/90 text-lg font-bold shadow-emergency group-hover:scale-105 transition-transform"
+              >
+                Start Emergency Chat
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-card transition-all cursor-pointer" onClick={() => navigate("/dashboard")}>
+            <CardHeader>
+              <div className="p-3 rounded-full bg-secondary/10 w-fit">
+                <QrCode className="h-7 w-7 text-secondary" />
+              </div>
+              <CardTitle className="text-xl">Scan QR Code</CardTitle>
+              <CardDescription>
+                Access medical profile instantly
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full">
+                Open Camera
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-card transition-all">
+            <CardHeader>
+              <div className="p-3 rounded-full bg-accent/10 w-fit">
+                <User className="h-7 w-7 text-accent" />
+              </div>
+              <CardTitle className="text-xl">My Profile</CardTitle>
+              <CardDescription>
+                Medical info & QR download
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" className="w-full" onClick={() => navigate("/dashboard")}>
+                View Profile
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
-            <TabsTrigger value="profile">
-              <User className="h-4 w-4 mr-2" />
-              Medical Info
-            </TabsTrigger>
-            <TabsTrigger value="contacts">
-              <Phone className="h-4 w-4 mr-2" />
-              Contacts
-            </TabsTrigger>
-            <TabsTrigger value="qr">
-              <QrCode className="h-4 w-4 mr-2" />
-              QR Code
-            </TabsTrigger>
-            <TabsTrigger value="emergency">
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Emergency AI
-            </TabsTrigger>
-            <TabsTrigger value="organizations">
-              <Building2 className="h-4 w-4 mr-2" />
-              Emergency Help
-            </TabsTrigger>
-            <TabsTrigger value="tutorials">
-              <Video className="h-4 w-4 mr-2" />
-              Tutorials
-            </TabsTrigger>
-          </TabsList>
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-3xl font-bold flex items-center gap-2">
+                <Video className="h-8 w-8 text-primary" />
+                First Aid Tutorials
+              </h2>
+              <p className="text-muted-foreground mt-1">
+                Learn life-saving skills through video guides
+              </p>
+            </div>
+          </div>
 
-          <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-primary" />
-                  Medical Profile
-                </CardTitle>
-                <CardDescription>
-                  This information will be accessible to first responders via your QR code
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <MedicalProfileForm userId={user?.id} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="contacts">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Phone className="h-5 w-5 text-primary" />
-                  Emergency Contacts
-                </CardTitle>
-                <CardDescription>
-                  Add people who should be contacted in case of emergency
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <EmergencyContactsForm userId={user?.id} />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="qr">
-            <QRCodeDisplay userId={user?.id} />
-          </TabsContent>
-
-          <TabsContent value="emergency">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-primary" />
-                  AI Emergency Assistant
-                </CardTitle>
-                <CardDescription>
-                  Get immediate first aid guidance for emergency situations
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={() => navigate("/emergency-chat")}
-                  className="w-full"
-                >
-                  Start Emergency Chat
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="organizations">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  Emergency Organizations
-                </CardTitle>
-                <CardDescription>
-                  Quick access to emergency services and hospitals in Kenya
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {organizations.map((org) => (
-                    <Card key={org.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-lg">{org.name}</CardTitle>
-                          <Badge variant="secondary">{org.type}</Badge>
-                        </div>
-                        <CardDescription>{org.location}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <a 
-                          href={`tel:${org.phone}`}
-                          className="flex items-center gap-2 text-primary hover:underline font-medium"
-                        >
-                          <Phone className="h-4 w-4" />
-                          {org.phone}
-                        </a>
-                        {org.website && (
-                          <a 
-                            href={org.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-sm"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Visit Website
-                          </a>
+          <div className="space-y-6">
+            {tutorialsByCategory.map(({ category, tutorials: catTutorials }) => (
+              catTutorials.length > 0 && (
+                <div key={category}>
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Badge variant="outline" className="text-sm">
+                      {category}
+                    </Badge>
+                  </h3>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {catTutorials.map((tutorial) => (
+                      <Card
+                        key={tutorial.id}
+                        className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
+                        onClick={() => window.open(tutorial.video_url, "_blank")}
+                      >
+                        {tutorial.thumbnail && (
+                          <div className="aspect-video w-full bg-muted relative overflow-hidden">
+                            <img
+                              src={tutorial.thumbnail}
+                              alt={tutorial.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                              <div className="p-4 rounded-full bg-primary shadow-emergency">
+                                <Video className="h-6 w-6 text-white" />
+                              </div>
+                            </div>
+                          </div>
                         )}
-                      </CardContent>
-                    </Card>
-                  ))}
+                        <CardHeader>
+                          <CardTitle className="text-base line-clamp-2">
+                            {tutorial.title}
+                          </CardTitle>
+                          <CardDescription className="line-clamp-2 text-sm">
+                            {tutorial.description}
+                          </CardDescription>
+                        </CardHeader>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              )
+            ))}
+          </div>
+        </section>
 
-          <TabsContent value="tutorials">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Video className="h-5 w-5 text-primary" />
-                  First Aid Tutorials
-                </CardTitle>
-                <CardDescription>
-                  Learn essential first aid skills through video tutorials
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {tutorials.map((tutorial) => (
-                    <Card key={tutorial.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                      {tutorial.thumbnail && (
-                        <div className="aspect-video w-full bg-muted">
-                          <img 
-                            src={tutorial.thumbnail} 
-                            alt={tutorial.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                      <CardHeader>
-                        <Badge variant="outline" className="w-fit mb-2">
-                          {tutorial.category}
-                        </Badge>
-                        <CardTitle className="text-base">{tutorial.title}</CardTitle>
-                        <CardDescription className="line-clamp-2">
-                          {tutorial.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => window.open(tutorial.video_url, '_blank')}
-                        >
-                          <Video className="h-4 w-4 mr-2" />
-                          Watch Tutorial
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        <section>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-3xl font-bold flex items-center gap-2">
+                <Phone className="h-8 w-8 text-primary" />
+                Emergency Contacts
+              </h2>
+              <p className="text-muted-foreground mt-1">
+                Quick access to hospitals and emergency services in Kenya
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {organizations.map((org) => (
+              <Card
+                key={org.id}
+                className="hover:shadow-lg transition-all group cursor-pointer"
+              >
+                <CardHeader>
+                  <div className="flex justify-between items-start mb-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {org.type}
+                    </Badge>
+                    <Heart className="h-5 w-5 text-primary" />
+                  </div>
+                  <CardTitle className="text-lg">{org.name}</CardTitle>
+                  <CardDescription className="text-sm">
+                    {org.location}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <a
+                    href={`tel:${org.phone}`}
+                    className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors group"
+                  >
+                    <Phone className="h-5 w-5 text-primary" />
+                    <span className="font-semibold text-primary">{org.phone}</span>
+                  </a>
+                  {org.website && (
+                    <a
+                      href={org.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                    >
+                      Visit Website →
+                    </a>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
       </main>
     </div>
   );

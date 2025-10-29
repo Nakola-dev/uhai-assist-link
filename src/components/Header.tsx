@@ -84,7 +84,7 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             <Button
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/auth?signup=true")}
               variant="default"
               className="bg-secondary hover:bg-secondary/90"
             >
@@ -125,7 +125,7 @@ const Header = () => {
                   <Button
                     onClick={() => {
                       setIsOpen(false);
-                      navigate("/auth");
+                      navigate("/auth?signup=true");
                     }}
                     className="w-full bg-secondary hover:bg-secondary/90"
                   >
