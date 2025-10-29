@@ -1,12 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Activity, Menu, X, AlertCircle } from "lucide-react";
+import { Activity, Menu, X, AlertCircle, ChevronDown } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navItems = [
     { label: "Home", path: "/" },
@@ -16,7 +31,13 @@ const Header = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
+        isScrolled
+          ? "bg-background/98 backdrop-blur-lg shadow-md supports-[backdrop-filter]:bg-background/95"
+          : "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      }`}
+    >
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -38,15 +59,38 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* CTA Button - Desktop */}
-          <Button
-            onClick={() => navigate("/emergency-chat")}
-            className="hidden md:flex items-center gap-2 bg-primary hover:bg-primary/90"
-            size="lg"
-          >
-            <AlertCircle className="h-5 w-5" />
-            Get Help Now 🚨
-          </Button>
+          {/* Desktop Auth & CTA */}
+          <div className="hidden md:flex items-center gap-3">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-1">
+                  Sign In
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                  onClick={() => navigate("/auth")}
+                  className="cursor-pointer"
+                >
+                  Login
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => navigate("/auth")}
+                  className="cursor-pointer"
+                >
+                  Register
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              onClick={() => navigate("/auth")}
+              variant="default"
+              className="bg-secondary hover:bg-secondary/90"
+            >
+              Create Free Account
+            </Button>
+          </div>
 
           {/* Mobile Menu */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -67,17 +111,27 @@ const Header = () => {
                     {item.label}
                   </Link>
                 ))}
-                <Button
-                  onClick={() => {
-                    setIsOpen(false);
-                    navigate("/emergency-chat");
-                  }}
-                  className="w-full items-center gap-2 bg-primary hover:bg-primary/90"
-                  size="lg"
-                >
-                  <AlertCircle className="h-5 w-5" />
-                  Get Help Now 🚨
-                </Button>
+                <div className="border-t pt-6 flex flex-col gap-3">
+                  <Button
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate("/auth");
+                    }}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate("/auth");
+                    }}
+                    className="w-full bg-secondary hover:bg-secondary/90"
+                  >
+                    Create Free Account
+                  </Button>
+                </div>
               </div>
             </SheetContent>
           </Sheet>
