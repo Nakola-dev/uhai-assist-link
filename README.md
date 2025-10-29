@@ -1,73 +1,147 @@
-# Welcome to your Lovable project
+🆘 Uhai Assist — AI Smart Emergency Response System
 
-## Project info
+When Every Second Counts, AI Responds
 
-**URL**: https://lovable.dev/projects/d8bc3ddd-da22-4419-bb92-eddc92741cde
+A web-based emergency assistance platform built to save lives in Kenya and across Africa through AI-guided first aid, QR-coded medical identity, and instant access to rescue services.
 
-## How can I edit this code?
+🚑 Problem
 
-There are several ways of editing your application.
+Every year, thousands of people die because:
 
-**Use Lovable**
+Bystanders don’t know what to do during emergencies
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/d8bc3ddd-da22-4419-bb92-eddc92741cde) and start prompting.
+Medical responders don’t have instant info on the victim
 
-Changes made via Lovable will be committed automatically to this repo.
+Emergency contacts cannot be reached quickly
 
-**Use your preferred IDE**
+Hospitals receive late or missing critical data
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+These delays cost lives.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+✅ Solution: Uhai Assist
 
-Follow these steps:
+Uhai Assist provides real-time emergency support:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+⭐ Key Core Features
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+✅ AI-Guided First Aid — step-by-step instructions during emergencies
 
-# Step 3: Install the necessary dependencies.
-npm i
+✅ QR Medical ID Wristbands — scan to view vital info instantly
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+✅ Emergency Contacts Directory — hospitals, Red Cross, AMREF
+
+✅ User Medical Profile — blood type, allergies, chronic conditions
+
+✅ Map-Based Hospital Locator — nearest help in seconds
+
+✅ User & Admin Dashboards
+
+Admin: Manage first aid tutorials + emergency contacts
+
+User: Direct access to emergency support tools
+
+🎯 Vision
+
+Build a reliable, accessible, life-saving emergency network
+designed for Kenya and underserved African communities.
+
+Because technology can save lives — if it responds faster than an ambulance.
+
+🧠 Architecture & Tech Stack
+Layer	Tech
+Frontend	React + Vite + Tailwind CSS
+Backend	Node.js + Express.js
+Database	MySQL (Supabase/Firebase hosting)
+AI Engine	Python FastAPI + OpenAI / LangChain
+QR Codes	QRCode.js + AES Encryption
+Hosting	Vercel (Frontend), Render (Backend + AI)
+🔐 Security
+
+AES-encrypted health data
+
+JWT Authentication + Role-based Access
+
+HTTPS enforced
+
+Admin dashboard restricted access
+
+📌 User Roles
+Role	Abilities
+User	Scan/Generate QR, access AI help, view tutorials & contacts
+Admin	Manage tutorials & emergency contacts, monitor system
+🚀 Getting Started — Local Development
+1️⃣ Clone repository
+git clone https://github.com/Nakola-dev/uhai-assist-link.git
+cd uhai-assist-link
+
+2️⃣ Install dependencies
+npm install
+
+3️⃣ Configure environment
+
+Create a .env file:
+
+VITE_API_URL=https://your-backend-url
+VITE_OPENAI_KEY=xxxx
+DB_URL=xxxx
+JWT_SECRET=xxxx
+
+4️⃣ Start Development Server
 npm run dev
-```
 
-**Edit a file directly in GitHub**
+🧪 Test Accounts (Demo Mode)
+Role	Email	Password
+Admin	admin@example.com
+	Admin123
+User	user@example.com
+	User1234
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Update with real accounts in production.
 
-**Use GitHub Codespaces**
+🛣️ Roadmap
+Feature	Status
+AI Guided First Aid	✅
+QR Medical ID	✅
+Emergency Contacts	✅
+Admin Dashboard	✅
+UI Enhancements + Animations	🔄 In Progress
+Offline Mode (Service Worker)	🔜
+SMS fallback for low-network areas	🔜
+Voice-Activated Emergency Help	🔜
+Integration with EMS APIs (e.g., Red Cross)	Future Collaboration
+🌍 Made for Kenya & Africa
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Mobile-first design
 
-## What technologies are used for this project?
+Works on low bandwidth
 
-This project is built with:
+Local emergency institutions included
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Designed for real-world use in high-stress environments
 
-## How can I deploy this project?
+Uhai = Life — Our mission is to protect it.
 
-Simply open [Lovable](https://lovable.dev/projects/d8bc3ddd-da22-4419-bb92-eddc92741cde) and click on Share -> Publish.
+🤝 Contribution
 
-## Can I connect a custom domain to my Lovable project?
+We welcome developers, first-aid experts, and emergency service providers.
 
-Yes, you can!
+git checkout -b feature-name
+git commit -m "Add new feature"
+git push origin feature-name
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Open a pull request ✅
+
+👨‍💻 Authors & Team Credits
+
+Uhai Assist Development Team
+KCA University — School of Computing and Information Technology
+2025
+
+📄 License
+
+MIT License © 2025 Uhai Assist Development Team
+
+📱 Screenshots (Add later)
+Coming soon…	Coming soon…
+🔥 Badges
