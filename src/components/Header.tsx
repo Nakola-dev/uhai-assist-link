@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Activity, Menu, X, AlertCircle, ChevronDown } from "lucide-react";
+import { Activity, Menu, X, AlertCircle, ChevronDown, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
@@ -9,11 +9,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Header = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,6 +26,32 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+    };
+    
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setIsAuthenticated(!!session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: "Signed out",
+      description: "You have been successfully signed out."
+    });
+    navigate("/");
+  };
 
   const navItems = [
     { label: "Home", path: "/" },
@@ -61,34 +91,61 @@ const Header = () => {
 
           {/* Desktop Auth & CTA */}
           <div className="hidden md:flex items-center gap-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-1">
-                  Sign In
-                  <ChevronDown className="h-4 w-4" />
+            {isAuthenticated ? (
+              <>
+                <Button
+                  onClick={() => navigate("/dashboard")}
+                  variant="outline"
+                >
+                  Dashboard
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => navigate("/auth")}
-                  className="cursor-pointer"
+                <Button
+                  onClick={handleSignOut}
+                  variant="ghost"
+                  className="flex items-center gap-2"
                 >
-                  Login
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => navigate("/auth")}
-                  className="cursor-pointer"
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-1">
+                      Sign In
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() => navigate("/auth")}
+                      className="cursor-pointer"
+                    >
+                      Login
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/auth?signup=true")}
+                      className="cursor-pointer"
+                    >
+                      Register
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  onClick={() => navigate("/auth?signup=true")}
+                  variant="default"
+                  className="bg-secondary hover:bg-secondary/90 animate-pulse"
                 >
-                  Register
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  Create Free Account
+                </Button>
+              </>
+            )}
             <Button
-              onClick={() => navigate("/auth?signup=true")}
-              variant="default"
-              className="bg-secondary hover:bg-secondary/90"
+              onClick={() => navigate("/emergency-chat")}
+              className="bg-destructive hover:bg-destructive/90 text-white font-semibold shadow-emergency"
             >
-              Create Free Account
+              Get Help Now 🚨
             </Button>
           </div>
 
@@ -112,24 +169,61 @@ const Header = () => {
                   </Link>
                 ))}
                 <div className="border-t pt-6 flex flex-col gap-3">
+                  {isAuthenticated ? (
+                    <>
+                      <Button
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate("/dashboard");
+                        }}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Dashboard
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setIsOpen(false);
+                          handleSignOut();
+                        }}
+                        variant="ghost"
+                        className="w-full flex items-center gap-2"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate("/auth");
+                        }}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        Sign In
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate("/auth?signup=true");
+                        }}
+                        className="w-full bg-secondary hover:bg-secondary/90"
+                      >
+                        Create Free Account
+                      </Button>
+                    </>
+                  )}
                   <Button
                     onClick={() => {
                       setIsOpen(false);
-                      navigate("/auth");
+                      navigate("/emergency-chat");
                     }}
-                    variant="outline"
-                    className="w-full"
+                    className="w-full bg-destructive hover:bg-destructive/90 text-white font-semibold"
                   >
-                    Sign In
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setIsOpen(false);
-                      navigate("/auth?signup=true");
-                    }}
-                    className="w-full bg-secondary hover:bg-secondary/90"
-                  >
-                    Create Free Account
+                    Get Help Now 🚨
                   </Button>
                 </div>
               </div>
