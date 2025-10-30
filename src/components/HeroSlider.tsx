@@ -19,7 +19,7 @@ interface HeroSlide {
   imageAlt: string;
 }
 
-const slides: HeroSlide[] = [
+const slides: HeroSlide[] = [            /* INITIAL SLIDER */
   {
     id: 1,
     headline: "Instant AI Emergency Help — When Every Second Counts",
@@ -30,7 +30,7 @@ const slides: HeroSlide[] = [
       icon: <AlertCircle className="h-5 w-5 animate-pulse" />,
     },
     secondaryCTA: {
-      text: "Learn First Aid",
+      text: "Learn First Aid",                /* MAKE VISIBLE BEFORE HOVER EFFECT */
       path: "/about",
     },
     imageAlt: "First responder assisting patient",
@@ -38,7 +38,7 @@ const slides: HeroSlide[] = [
   {
     id: 2,
     headline: "Scan Medical QR for Faster Rescue",
-    subtext: "Access vital patient info instantly — allergies, conditions, emergency contacts.",
+    subtext: "Access vital patient info instantly — allergies, conditions & emergency contacts.",
     primaryCTA: {
       text: "Scan QR Code",
       path: "/dashboard",
