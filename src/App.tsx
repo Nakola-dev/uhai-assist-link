@@ -96,6 +96,7 @@ const ProtectedRoute = ({
   return <>{children}</>;
 };
 
+/* URL ROUTING */
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
