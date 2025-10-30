@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getUserRole } from "@/lib/auth-utils";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -32,7 +31,7 @@ const ProtectedRoute = ({
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         setIsAuthenticated(false);
         return;
@@ -41,8 +40,12 @@ const ProtectedRoute = ({
       setIsAuthenticated(true);
 
       if (requiredRole) {
-        const userRole = await getUserRole(session.user.id);
-        setHasAccess(userRole === requiredRole);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .maybeSingle();
+        setHasAccess(profile?.role === requiredRole);
       } else {
         setHasAccess(true);
       }
@@ -58,8 +61,12 @@ const ProtectedRoute = ({
         } else {
           setIsAuthenticated(true);
           if (requiredRole) {
-            const userRole = await getUserRole(session.user.id);
-            setHasAccess(userRole === requiredRole);
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("role")
+              .eq("id", session.user.id)
+              .maybeSingle();
+            setHasAccess(profile?.role === requiredRole);
           } else {
             setHasAccess(true);
           }
@@ -83,7 +90,7 @@ const ProtectedRoute = ({
   }
 
   if (requiredRole && !hasAccess) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard/user" replace />;
   }
 
   return <>{children}</>;
@@ -98,21 +105,29 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route 
-            path="/dashboard" 
+          <Route
+            path="/dashboard/user"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredRole="user">
                 <Dashboard />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/admin" 
+          <Route
+            path="/dashboard/admin"
             element={
               <ProtectedRoute requiredRole="admin">
                 <AdminDashboard />
               </ProtectedRoute>
-            } 
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={<Navigate to="/dashboard/user" replace />}
+          />
+          <Route
+            path="/admin"
+            element={<Navigate to="/dashboard/admin" replace />}
           />
           <Route path="/emergency-chat" element={<EmergencyChat />} />
           <Route path="/about" element={<About />} />

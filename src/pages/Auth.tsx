@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Activity, Mail, Lock, User, Phone, AlertCircle } from "lucide-react";
-import { getUserRole, createUserRole } from "@/lib/auth-utils";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -47,12 +46,16 @@ const Auth = () => {
   }, [location]);
 
   const redirectBasedOnRole = async (userId: string) => {
-    const role = await getUserRole(userId);
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
 
-    if (role === "admin") {
-      navigate("/admin");
+    if (profile?.role === "admin") {
+      navigate("/dashboard/admin");
     } else {
-      navigate("/dashboard");
+      navigate("/dashboard/user");
     }
   };
 
@@ -91,7 +94,7 @@ const Auth = () => {
         if (error) throw error;
 
         if (data.user) {
-          await createUserRole(data.user.id, "user");
+          await new Promise(resolve => setTimeout(resolve, 1000));
           await redirectBasedOnRole(data.user.id);
           toast({
             title: "Account created!",

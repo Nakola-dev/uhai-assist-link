@@ -16,7 +16,6 @@ import {
   Heart
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { getUserRole } from "@/lib/auth-utils";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -36,8 +35,12 @@ const Dashboard = () => {
       }
       setUser(session.user);
 
-      const role = await getUserRole(session.user.id);
-      setIsAdmin(role === "admin");
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .maybeSingle();
+      setIsAdmin(profile?.role === "admin");
       setLoading(false);
 
       fetchData();
@@ -110,7 +113,7 @@ const Dashboard = () => {
           </div>
           <div className="flex gap-2">
             {isAdmin && (
-              <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
+              <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/admin")}>
                 <Shield className="h-4 w-4 mr-2" />
                 Admin
               </Button>

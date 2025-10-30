@@ -12,13 +12,25 @@ serve(async (req) => {
 
   try {
     const { messages } = await req.json();
+
+    console.log('Emergency chat request received');
+
+    return new Response(
+      JSON.stringify({
+        error: 'AI Emergency Chat is currently unavailable. Please call emergency services at 999 or 112 for immediate assistance.'
+      }),
+      {
+        status: 503,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    );
+
+    /* LOVABLE API Integration temporarily disabled
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    
+
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
-
-    console.log('Emergency chat request received');
 
     const systemPrompt = `You are an AI emergency first aid assistant for UhaiLink, a life-saving platform used across Africa. Your role is CRITICAL - you provide immediate, accurate first aid guidance that could save lives.
 
@@ -96,6 +108,7 @@ Start every response with severity assessment: 🔴 CRITICAL, 🟡 URGENT, or �
     return new Response(response.body, {
       headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
     });
+    */
 
   } catch (error) {
     console.error('Emergency chat error:', error);
