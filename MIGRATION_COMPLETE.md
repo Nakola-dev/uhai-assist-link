@@ -13,6 +13,7 @@ The project has been **fully migrated** from Lovable to Supabase for authenticat
 ```env
 VITE_SUPABASE_URL=https://zxsvdbtyzbgkmavbdxdg.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
 ```
 
 ### ✅ Replaced
@@ -189,7 +190,7 @@ $ npm run build
 - ✅ `src/pages/Auth.tsx` - Role-based redirect logic
 - ✅ `src/pages/Dashboard.tsx` - Uses profiles table for role check
 - ✅ `src/pages/AdminDashboard.tsx` - Uses profiles table for admin access
-- ✅ `src/pages/EmergencyChat.tsx` - Updated API key reference
+- ✅ `src/pages/Assistant.tsx` - Updated API key reference
 - ✅ `src/App.tsx` - Updated routing and protection logic
 - ✅ `supabase/functions/emergency-chat/index.ts` - Commented out LOVABLE_API_KEY
 
