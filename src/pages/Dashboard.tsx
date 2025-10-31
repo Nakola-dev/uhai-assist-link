@@ -182,7 +182,7 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/profileview")}>
+              <Button variant="outline" className="w-full" onClick={() => navigate("./profileview")}>
                 View Profile
               </Button>
             </CardContent>
