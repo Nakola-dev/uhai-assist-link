@@ -154,7 +154,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-card transition-all cursor-pointer" onClick={() => navigate("/dashboard")}>
+          <Card className="hover:shadow-card transition-all cursor-pointer" onClick={() => navigate("./src/components/QRCodeDisplay")}>
             <CardHeader>
               <div className="p-3 rounded-full bg-secondary/10 w-fit">
                 <QrCode className="h-7 w-7 text-secondary" />
