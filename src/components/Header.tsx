@@ -142,7 +142,7 @@ const Header = () => {
               </>
             )}
             <Button
-              onClick={() => navigate("/emergency-chat")}
+              onClick={() => navigate("/assistant")}
               className="bg-destructive hover:bg-destructive/90 text-white font-semibold shadow-emergency"
             >
               Get Help Now 🚨
@@ -219,7 +219,7 @@ const Header = () => {
                   <Button
                     onClick={() => {
                       setIsOpen(false);
-                      navigate("/emergency-chat");
+                      navigate("/assistant");
                     }}
                     className="w-full bg-destructive hover:bg-destructive/90 text-white font-semibold"
                   >
