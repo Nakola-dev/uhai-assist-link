@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmergencyChat from "./pages/EmergencyChat";
+import Assistant from "./pages/Assistant";
 import ProfileView from "./pages/ProfileView";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -131,6 +132,7 @@ const App = () => (
             element={<Navigate to="/dashboard/admin" replace />}
           />
           <Route path="/emergency-chat" element={<EmergencyChat />} />
+          <Route path="/assistant" element={<Assistant />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/profile/:token" element={<ProfileView />} />

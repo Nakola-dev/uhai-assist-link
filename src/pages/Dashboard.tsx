@@ -145,11 +145,11 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <Button
-                onClick={() => navigate("/emergency-chat")}
+                onClick={() => navigate("/assistant")}
                 size="lg"
                 className="w-full bg-primary hover:bg-primary/90 text-lg font-bold shadow-emergency group-hover:scale-105 transition-transform"
               >
-                Start Emergency Chat
+                Start Emergency Assistant
               </Button>
             </CardContent>
           </Card>

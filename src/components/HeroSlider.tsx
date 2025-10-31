@@ -26,7 +26,7 @@ const slides: HeroSlide[] = [            /* INITIAL SLIDER */
     subtext: "Get step-by-step first aid guidance powered by AI — anywhere in Kenya.",
     primaryCTA: {
       text: "Get Help Now",
-      path: "/emergency-chat",
+      path: "/assistant",
       icon: <AlertCircle className="h-5 w-5 animate-pulse" />,
     },
     secondaryCTA: {
