@@ -31,7 +31,7 @@ const slides: HeroSlide[] = [            /* INITIAL SLIDER */
     },
     secondaryCTA: {
       text: "Learn First Aid",                /* MAKE VISIBLE BEFORE HOVER EFFECT */
-      path: "/about",
+      path: "/dashboard",                     /* TRY WORKING WITH THE LOG IN LOGIC*/
     },
     imageAlt: "First responder assisting patient",
   },
