@@ -216,7 +216,7 @@ const Dashboard = () => {
                       <Card
                         key={tutorial.id}
                         className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
-                        onClick={() => window.open("https://www.youtube.com/watch?v=NxO5LvgqZe0", "BLEEDING")}
+                        onClick={() => window.open("https://youtu.be/ea1RJUOiNfQ?si=2q0hIupgjRLX6dRB", "BLEEDING")}   /*  SIMPLE VIDEO CHANGE  - https://www.youtube.com/watch?v=NxO5LvgqZe0*/
                       >
                         {tutorial.thumbnail && (
                           <div className="aspect-video w-full bg-muted relative overflow-hidden">
