@@ -9,7 +9,6 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import EmergencyChat from "./pages/EmergencyChat";
 import Assistant from "./pages/Assistant";
 import ProfileView from "./pages/ProfileView";
 import About from "./pages/About";
