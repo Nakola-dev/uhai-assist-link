@@ -13,13 +13,8 @@ The project now uses the following environment variables (configured in `.env`):
 ```env
 VITE_SUPABASE_URL=https://zxsvdbtyzbgkmavbdxdg.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_OPENROUTER_API_KEY=sk-or-v1-af0c03bcfe19990e1ea15248a376cf71026df15039a4d9aecf695e67bc089e4
 ```
-
-### ❌ Removed Variables
-
-- ~~`LOVABLE_API_KEY`~~ - Removed from edge functions
-- ~~`VITE_SUPABASE_PUBLISHABLE_KEY`~~ - Replaced with `VITE_SUPABASE_ANON_KEY`
-
 ## Authentication System
 
 ### Supabase Auth Integration
