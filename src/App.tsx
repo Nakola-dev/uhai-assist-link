@@ -46,17 +46,12 @@ const ProtectedRoute = ({
 
   useEffect(() => {
     const check = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         setIsAuthenticated(false);
         return;
       }
-
       setIsAuthenticated(true);
-
       if (requiredRole) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -68,30 +63,28 @@ const ProtectedRoute = ({
         setHasAccess(true);
       }
     };
-
     check();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session) {
-        setIsAuthenticated(false);
-        setHasAccess(false);
-      } else {
-        setIsAuthenticated(true);
-        if (requiredRole) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", session.user.id)
-            .maybeSingle();
-          setHasAccess(profile?.role === requiredRole);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        if (!session) {
+          setIsAuthenticated(false);
+          setHasAccess(false);
         } else {
-          setHasAccess(true);
+          setIsAuthenticated(true);
+          if (requiredRole) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("role")
+              .eq("id", session.user.id)
+              .maybeSingle();
+            setHasAccess(profile?.role === requiredRole);
+          } else {
+            setHasAccess(true);
+          }
         }
       }
-    });
-
+    );
     return () => subscription.unsubscribe();
   }, [requiredRole]);
 
@@ -104,7 +97,6 @@ const ProtectedRoute = ({
   }
 
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
-
   if (requiredRole && !hasAccess) {
     const redirect = requiredRole === "admin" ? "/dashboard/user" : "/dashboard/admin";
     return <Navigate to={redirect} replace />;
@@ -121,25 +113,44 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* ── PUBLIC PAGES (marketing layout) ── */}
-          <Route element={<Layout />}>
+
+          {/* ── PUBLIC PAGES: FULL MARKETING LAYOUT (Header + Footer) ── */}
+          <Route
+            element={
+              <Layout showHeader={true} showFooter={true}>
+                <Outlet />
+              </Layout>
+            }
+          >
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/profile/:token" element={<ProfileView />} />
-            <Route path="/404" element={<NotFound />} />
-            <Route path="*" element={<Navigate to="/404" replace />} />
           </Route>
 
-          {/* ── FULL-SCREEN (no layout) ── */}
+          {/* ── AUTH & PROFILE: HEADER ONLY (No Footer) ── */}
+          <Route
+            element={
+              <Layout showHeader={true} showFooter={false}>
+                <Outlet />
+              </Layout>
+            }
+          >
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/profile/:token" element={<ProfileView />} />
+          </Route>
+
+          {/* ── ERROR & CATCH-ALL: NO LAYOUT ── */}
+          <Route path="/404" element={<NotFound />} />
+          <Route path="*" element={<Navigate to="/404" replace />} />
+
+          {/* ── FULL-SCREEN PAGES: NO LAYOUT ── */}
           <Route path="/assistant" element={<Assistant />} />
 
-          {/* ── DASHBOARD ROOT REDIRECTS ── */}
+          {/* ── REDIRECTS ── */}
           <Route path="/dashboard" element={<Navigate to="/dashboard/user" replace />} />
           <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
 
-          {/* ── USER DASHBOARD (nested, protected) ── */}
+          {/* ── USER DASHBOARD: NO LAYOUT (Has its own header) ── */}
           <Route
             path="/dashboard/user"
             element={
@@ -153,7 +164,7 @@ const App = () => (
             <Route path="qr" element={<UserQRPage />} />
           </Route>
 
-          {/* ── ADMIN DASHBOARD (protected) ── */}
+          {/* ── ADMIN DASHBOARD: NO LAYOUT ── */}
           <Route
             path="/dashboard/admin"
             element={
@@ -162,6 +173,7 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
