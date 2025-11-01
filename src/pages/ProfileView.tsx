@@ -1,3 +1,4 @@
+// src/pages/ProfileView.tsx
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +23,7 @@ interface EmergencyContact {
 }
 
 const ProfileView = () => {
-  const { token } = useParams();
+  const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<MedicalProfile | null>(null);
@@ -30,14 +31,23 @@ const ProfileView = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    document.title = "Emergency Profile - UhaiLink";
+  }, []);
+
+  useEffect(() => {
+    if (!token) {
+      setError("Invalid QR code");
+      setLoading(false);
+      return;
+    }
     fetchProfileData();
   }, [token]);
 
   const fetchProfileData = async () => {
     try {
       setLoading(true);
+      setError("");
 
-      // Get user_id from token
       const { data: tokenData, error: tokenError } = await supabase
         .from("qr_access_tokens")
         .select("user_id")
@@ -50,7 +60,6 @@ const ProfileView = () => {
         return;
       }
 
-      // Fetch medical profile
       const { data: medicalData, error: medicalError } = await supabase
         .from("medical_profiles")
         .select("*")
@@ -60,7 +69,6 @@ const ProfileView = () => {
       if (medicalError) throw medicalError;
       setProfile(medicalData);
 
-      // Fetch emergency contacts
       const { data: contactsData, error: contactsError } = await supabase
         .from("emergency_contacts")
         .select("*")
@@ -70,7 +78,7 @@ const ProfileView = () => {
       if (contactsError) throw contactsError;
       setContacts(contactsData || []);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -91,7 +99,7 @@ const ProfileView = () => {
           <CardContent className="pt-6 text-center space-y-4">
             <AlertTriangle className="h-16 w-16 text-destructive mx-auto" />
             <h2 className="text-2xl font-bold">Access Denied</h2>
-            <p className="text-muted-foreground">{error || "Unable to load medical profile"}</p>
+            <p className="text-muted-foreground">{error}</p>
             <Button onClick={() => navigate("/")} className="w-full">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Go Home
@@ -116,8 +124,9 @@ const ProfileView = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl space-y-6">
-        <Card className="border-primary shadow-emergency">
+      <main className="container mx-auto px-4 py-8 max-w-4xl space-y-6 print:space-y-4">
+        {/* Medical Info */}
+        <Card className="border-primary shadow-emergency print:shadow-none print:border print:border-gray-300">
           <CardHeader className="bg-primary/5">
             <CardTitle className="flex items-center gap-2 text-primary">
               <Heart className="h-5 w-5" />
@@ -131,30 +140,26 @@ const ProfileView = () => {
                 <span className="col-span-2 text-lg font-bold text-accent">{profile.blood_type}</span>
               </div>
             )}
-
             {profile.allergies && (
               <div>
-                <h3 className="font-semibold text-destructive mb-2">⚠️ Allergies</h3>
+                <h3 className="font-semibold text-destructive mb-2">Allergies</h3>
                 <p className="p-3 bg-destructive/10 rounded-lg border border-destructive/20">
                   {profile.allergies}
                 </p>
               </div>
             )}
-
             {profile.medications && (
               <div>
                 <h3 className="font-semibold mb-2">Current Medications</h3>
                 <p className="p-3 bg-muted rounded-lg">{profile.medications}</p>
               </div>
             )}
-
             {profile.chronic_conditions && (
               <div>
                 <h3 className="font-semibold mb-2">Chronic Conditions</h3>
                 <p className="p-3 bg-muted rounded-lg">{profile.chronic_conditions}</p>
               </div>
             )}
-
             {profile.additional_notes && (
               <div>
                 <h3 className="font-semibold mb-2">Additional Notes</h3>
@@ -164,7 +169,8 @@ const ProfileView = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Emergency Contacts */}
+        <Card className="print:break-after">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Phone className="h-5 w-5 text-primary" />
