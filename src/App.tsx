@@ -24,6 +24,7 @@ import Layout from "@/components/Layout";
 
 const queryClient = new QueryClient();
 
+// ────── Protected Route with Role Check ──────
 const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: "admin" | "user" }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
@@ -60,7 +61,7 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
           .eq("id", session.user.id)
           .maybeSingle();
         setHasAccess(profile?.role === requiredRole);
-      } else {
+      } else if (!session) {
         setHasAccess(false);
       }
     });
@@ -68,6 +69,7 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
     return () => subscription.unsubscribe();
   }, [requiredRole]);
 
+  // Loading
   if (isAuthenticated === null || hasAccess === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -76,7 +78,10 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
     );
   }
 
+  // Not logged in
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
+
+  // Wrong role
   if (requiredRole && !hasAccess) {
     return <Navigate to={requiredRole === "admin" ? "/dashboard/user" : "/dashboard/admin"} replace />;
   }
@@ -84,6 +89,7 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
   return <>{children}</>;
 };
 
+// ────── Main App ──────
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -109,7 +115,7 @@ const App = () => (
           <Route path="/dashboard" element={<Navigate to="/dashboard/user" replace />} />
           <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
 
-          {/* USER DASHBOARD - NO LAYOUT */}
+          {/* USER DASHBOARD (NO LAYOUT) */}
           <Route
             path="/dashboard/user"
             element={<ProtectedRoute requiredRole="user"><Outlet /></ProtectedRoute>}
@@ -119,7 +125,7 @@ const App = () => (
             <Route path="qr" element={<UserQRPage />} />
           </Route>
 
-          {/* ADMIN DASHBOARD - NO LAYOUT */}
+          {/* ADMIN DASHBOARD (NO LAYOUT) */}
           <Route
             path="/dashboard/admin"
             element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>}
