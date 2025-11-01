@@ -20,7 +20,7 @@ import NotFound from "./pages/NotFound";
 import UserProfilePage from "./pages/UserProfilePage";
 import UserQRPage from "./pages/UserQRPage";
 
-// Layout
+// Layout (ONLY for public pages)
 import Layout from "@/components/Layout";
 
 const queryClient = new QueryClient();
@@ -39,14 +39,11 @@ const ProtectedRoute = ({
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-
       if (!session) {
         setIsAuthenticated(false);
         return;
       }
-
       setIsAuthenticated(true);
-
       if (requiredRole) {
         const { data: profile } = await supabase
           .from("profiles")
@@ -58,7 +55,6 @@ const ProtectedRoute = ({
         setHasAccess(true);
       }
     };
-
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -81,7 +77,6 @@ const ProtectedRoute = ({
         }
       }
     );
-
     return () => subscription.unsubscribe();
   }, [requiredRole]);
 
@@ -93,13 +88,8 @@ const ProtectedRoute = ({
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  if (requiredRole && !hasAccess) {
-    return <Navigate to="/dashboard/user" replace />;
-  }
+  if (!isAuthenticated) return <Navigate to="/auth" replace />;
+  if (requiredRole && !hasAccess) return <Navigate to="/dashboard/user" replace />;
 
   return <>{children}</>;
 };
@@ -113,7 +103,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
 
-          {/* PUBLIC PAGES WITH FULL LAYOUT */}
+          {/* PUBLIC PAGES — FULL MARKETING LAYOUT */}
           <Route
             element={
               <Layout showHeader={true} showFooter={true}>
@@ -138,18 +128,18 @@ const App = () => (
             <Route path="/profile/:token" element={<ProfileView />} />
           </Route>
 
-          {/* ERROR PAGE — NO LAYOUT */}
+          {/* ERROR — NO LAYOUT */}
           <Route path="/404" element={<NotFound />} />
           <Route path="*" element={<Navigate to="/404" replace />} />
 
-          {/* FULL-SCREEN PAGES — NO LAYOUT */}
+          {/* FULL-SCREEN — NO LAYOUT */}
           <Route path="/assistant" element={<Assistant />} />
 
           {/* REDIRECTS */}
           <Route path="/dashboard" element={<Navigate to="/dashboard/user" replace />} />
           <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
 
-          {/* USER DASHBOARD — NO LAYOUT */}
+          {/* USER DASHBOARD — NO LAYOUT (HAS OWN HEADER) */}
           <Route
             path="/dashboard/user"
             element={
