@@ -24,7 +24,7 @@ import Layout from "@/components/Layout";
 
 const queryClient = new QueryClient();
 
-// ────── Protected Route with Role Check ──────
+// ────── Protected Route ──────
 const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: "admin" | "user" }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
@@ -69,7 +69,6 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
     return () => subscription.unsubscribe();
   }, [requiredRole]);
 
-  // Loading
   if (isAuthenticated === null || hasAccess === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -78,10 +77,7 @@ const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode;
     );
   }
 
-  // Not logged in
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
-
-  // Wrong role
   if (requiredRole && !hasAccess) {
     return <Navigate to={requiredRole === "admin" ? "/dashboard/user" : "/dashboard/admin"} replace />;
   }
@@ -97,25 +93,41 @@ const App = () => (
       <BrowserRouter>
         <Routes>
 
-          {/* PUBLIC PAGES WITH MARKETING LAYOUT */}
-          <Route element={<Layout />}>
+          {/* PUBLIC PAGES — FULL LAYOUT */}
+          <Route
+            element={
+              <Layout showHeader={true} showFooter={true}>
+                <Outlet />
+              </Layout>
+            }
+          >
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+          </Route>
+
+          {/* AUTH & PROFILE — HEADER ONLY */}
+          <Route
+            element={
+              <Layout showHeader={true} showFooter={false}>
+                <Outlet />
+              </Layout>
+            }
+          >
+            <Route path="/auth" element={<Auth />} />
             <Route path="/profile/:token" element={<ProfileView />} />
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Route>
 
-          {/* FULL-SCREEN PAGES (NO LAYOUT) */}
+          {/* FULL-SCREEN PAGES — NO LAYOUT */}
           <Route path="/assistant" element={<Assistant />} />
 
           {/* REDIRECTS */}
           <Route path="/dashboard" element={<Navigate to="/dashboard/user" replace />} />
           <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
 
-          {/* USER DASHBOARD (NO LAYOUT) */}
+          {/* USER DASHBOARD — NO LAYOUT */}
           <Route
             path="/dashboard/user"
             element={<ProtectedRoute requiredRole="user"><Outlet /></ProtectedRoute>}
@@ -125,7 +137,7 @@ const App = () => (
             <Route path="qr" element={<UserQRPage />} />
           </Route>
 
-          {/* ADMIN DASHBOARD (NO LAYOUT) */}
+          {/* ADMIN DASHBOARD — NO LAYOUT */}
           <Route
             path="/dashboard/admin"
             element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>}
