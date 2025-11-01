@@ -17,6 +17,13 @@ const Layout = ({ children, showHeader = true, showFooter = true }: LayoutProps)
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [pathname]);
 
-
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      {showHeader && <Header />}
+      <main className="flex-1">{children}</main>
+      {showFooter && <Footer />}
+    </div>
+  );
+};
 
 export default Layout;
