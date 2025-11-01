@@ -1,4 +1,3 @@
-// src/components/Layout.tsx
 import { ReactNode, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Header from "./Header";
@@ -19,7 +18,7 @@ const Layout = ({ children, showHeader = true, showFooter = true }: LayoutProps)
   }, [pathname]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col">
       {showHeader && <Header />}
       <main className="flex-1">{children}</main>
       {showFooter && <Footer />}
