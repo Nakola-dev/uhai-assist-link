@@ -7,40 +7,51 @@ import Footer from "./Footer";
 const Layout = () => {
   const { pathname } = useLocation();
 
-  // Scroll to top on navigation
+  // Scroll to top on every navigation
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [pathname]);
 
-  // Public routes that should show Header + Footer
-  const isPublicRoute =
-    pathname === "/" ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/about") ||
-    pathname.startsWith("/contact") ||
-    pathname.startsWith("/profile/") ||
-    pathname === "/404";
+  // Define which routes are "public" (marketing layout)
+  const publicRoutes = [
+    "/",
+    "/about",
+    "/contact",
+  ];
 
-  // Dashboard & Assistant never show marketing layout
-  const isDashboardOrAssistant =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/assistant");
+  const isPublicPage = publicRoutes.includes(pathname) || pathname === "/";
 
-  // Auth / error pages – full-screen, no layout
-  const isAuthOrError =
-    pathname.startsWith("/auth") || pathname === "/404";
+  // These routes NEVER show header/footer
+  const noLayoutRoutes = [
+    "/auth",
+    "/assistant",
+    "/404",
+  ];
+
+  const hasNoLayout = noLayoutRoutes.some(route => pathname.startsWith(route));
+
+  // Profile view: clean emergency view (no header/footer)
+  const isProfileView = pathname.startsWith("/profile/");
+
+  // Dashboard: user or admin
+  const isDashboard = pathname.startsWith("/dashboard");
+
+  // Final decision
+  const showHeader = isPublicPage && !hasNoLayout && !isProfileView && !isDashboard;
+  const showFooter = isPublicPage && !hasNoLayout && !isProfileView && !isDashboard;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Marketing Header (only on public pages) */}
-      {isPublicRoute && !isDashboardOrAssistant && <Header />}
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Marketing Header */}
+      {showHeader && <Header />}
 
-      {/* Main content */}
+      {/* Main Content */}
       <main className="flex-1">
         <Outlet />
       </main>
 
-      {/* Marketing Footer (only on public pages) */}
-      {isPublicRoute && !isDashboardOrAssistant && !isAuthOrError && <Footer />}
+      {/* Marketing Footer */}
+      {showFooter && <Footer />}
     </div>
   );
 };
