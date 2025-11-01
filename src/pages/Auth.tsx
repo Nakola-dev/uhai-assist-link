@@ -94,7 +94,7 @@ const Auth = () => {
         if (error) throw error;
 
         if (data.user) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 500));
           await redirectBasedOnRole(data.user.id);
           toast({
             title: "Account created!",
