@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Activity, Menu, X, AlertCircle, ChevronDown, LogOut, Shield } from "lucide-react";
+import { Activity, Menu, AlertCircle, ChevronDown, LogOut, Shield } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
@@ -45,20 +45,21 @@ const Header = () => {
     };
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setIsAuthenticated(!!session);
-      if (session) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .maybeSingle();
-        setIsAdmin(profile?.role === "admin");
-      } else {
-        setIsAdmin(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        setIsAuthenticated(!!session);
+        if (session) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          setIsAdmin(profile?.role === "admin");
+        } else {
+          setIsAdmin(false);
+        }
       }
-    });
-
+    );
     return () => subscription.unsubscribe();
   }, []);
 
@@ -69,11 +70,19 @@ const Header = () => {
     navigate("/");
   };
 
-  // ────── Only Show on Public Pages ──────
-  const publicPaths = ["/", "/about", "/contact"];
-  const isPublicPage = publicPaths.includes(location.pathname);
+  // ────── ONLY SHOW ON PUBLIC PAGES ──────
+  const publicPaths = ["/", "/about", "/contact", "/auth", "/profile/"];
+  const isPublicPage = publicPaths.some(path => 
+    path.endsWith("/") 
+      ? location.pathname.startsWith(path) 
+      : location.pathname === path
+  );
 
-  if (!isPublicPage) return null;
+  // DO NOT RENDER ON DASHBOARD, ASSISTANT, 404
+  const blockedPaths = ["/dashboard", "/assistant", "/404"];
+  const isBlocked = blockedPaths.some(path => location.pathname.startsWith(path));
+
+  if (!isPublicPage || isBlocked) return null;
 
   // ────── Navigation ──────
   const navItems = [
@@ -95,7 +104,10 @@ const Header = () => {
         <div className="flex h-16 items-center justify-between">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity">
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
+          >
             <Activity className="h-6 w-6 text-primary" />
             <span>UhaiLink</span>
           </Link>
@@ -134,7 +146,12 @@ const Header = () => {
                 >
                   Dashboard
                 </Button>
-                <Button onClick={handleSignOut} variant="ghost" size="sm" className="flex items-center gap-1">
+                <Button 
+                  onClick={handleSignOut} 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex items-center gap-1"
+                >
                   <LogOut className="h-4 w-4" /> Sign Out
                 </Button>
               </>
