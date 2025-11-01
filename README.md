@@ -121,7 +121,7 @@ Uhai Assist provides **real-time, AI-powered emergency support** accessible from
 ### AI & Integration
 | Technology | Purpose |
 |------------|---------|
-| **Lovable AI** | AI chat assistant integration |
+| **DEEPSEEK R1** | AI chat assistant integration |
 | **QRCode.react** | QR code generation for medical IDs |
 | **Lucide React** | Modern icon library |
 | **Sonner & React-Toastify** | User notifications and toasts |
@@ -196,7 +196,7 @@ Uhai Assist provides **real-time, AI-powered emergency support** accessible from
 - **Node.js** (v18 or higher)
 - **npm** or **bun** package manager
 - **Git** for version control
-- **Lovable Cloud account** (for backend services)
+- **BOLT.NEW Cloud account** (for backend services)
 
 ### 1️⃣ Clone the Repository
 ```bash
@@ -212,7 +212,7 @@ bun install
 ```
 
 ### 3️⃣ Environment Configuration
-The `.env` file is automatically managed by Lovable Cloud. It includes:
+The `.env` file is automatically managed by BOLT.NEW Cloud. It includes:
 ```env
 VITE_SUPABASE_URL=<auto-configured>
 VITE_SUPABASE_PUBLISHABLE_KEY=<auto-configured>
@@ -234,8 +234,8 @@ The app will be available at `http://localhost:8080`
 
 ## 🔧 Environment Setup
 
-### Lovable Cloud Setup
-This project uses **Lovable Cloud** for backend services (powered by Supabase):
+### Bolt.new Cloud Setup
+This project uses **Bolt.new** for backend services (powered by Supabase):
 
 1. **Automatic Backend Provisioning**
    - Database, authentication, and storage are automatically configured
@@ -261,7 +261,7 @@ This project uses **Lovable Cloud** for backend services (powered by Supabase):
 
 ### Deploy to Production
 
-#### Using Lovable (Recommended)
+#### Using BOLT.NEW (Recommended)
 1. Click the **"Publish"** button in Lovable
 2. Your app is deployed automatically to `<your-project>.lovable.app`
 3. Custom domains can be configured in project settings
@@ -284,9 +284,7 @@ npm run build
 ```
 
 ### Environment Variables in Production
-Lovable Cloud automatically manages environment variables in production. For custom deployments:
-- Add `VITE_SUPABASE_URL` from Lovable Cloud dashboard
-- Add `VITE_SUPABASE_PUBLISHABLE_KEY` from Lovable Cloud dashboard
+
 
 ---
 
