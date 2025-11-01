@@ -120,17 +120,6 @@ All tables created automatically via migrations:
 - **Completion Summary**: `MIGRATION_COMPLETE.md`
 
 ---
-
-## ⚠️ Known Limitations
-
-**Emergency AI Chat**: Temporarily disabled
-- Location: `supabase/functions/emergency-chat/index.ts`
-- Reason: LOVABLE_API_KEY removed
-- Status: Returns 503 with emergency contact message
-- Fix: Configure alternative AI provider (OpenAI, Anthropic, etc.)
-
----
-
 ## 🎉 You're Ready!
 
 The application is **fully functional** and **production-ready** with:
