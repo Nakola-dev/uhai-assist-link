@@ -130,7 +130,14 @@ const App = () => (
             path="/admin"
             element={<Navigate to="/dashboard/admin" replace />}
           />
-          <Route path="/assistant" element={<Assistant />} />
+          <Route
+            path="/dashboard/profile"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/assistant" element={<Assistant />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
