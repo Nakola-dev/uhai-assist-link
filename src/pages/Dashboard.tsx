@@ -154,7 +154,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-card transition-all cursor-pointer" onClick={() => navigate("./src/components/QRCodeDisplay")}>
+          <Card className="hover:shadow-card transition-all">
             <CardHeader>
               <div className="p-3 rounded-full bg-secondary/10 w-fit">
                 <QrCode className="h-7 w-7 text-secondary" />
@@ -165,7 +165,7 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={() => navigate("/dashboard/profile")}>
                 Open Camera
               </Button>
             </CardContent>
