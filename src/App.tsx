@@ -24,51 +24,80 @@ import Layout from "@/components/Layout";
 
 const queryClient = new QueryClient();
 
+// ────── Protected Route with Role Check ──────
 const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: "admin" | "user" }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const check = async () => {
+    const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { setIsAuthenticated(false); return; }
+      if (!session) {
+        setIsAuthenticated(false);
+        return;
+      }
       setIsAuthenticated(true);
 
       if (requiredRole) {
-        const { data: profile } = await supabase.from("profiles").select("role").eq("id", session.user.id).maybeSingle();
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .maybeSingle();
         setHasAccess(profile?.role === requiredRole);
       } else {
         setHasAccess(true);
       }
     };
-    check();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_, session) => {
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setIsAuthenticated(!!session);
       if (session && requiredRole) {
-        const { data: profile } = await supabase.from("profiles").select("role").eq("id", session.user.id).maybeSingle();
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .maybeSingle();
         setHasAccess(profile?.role === requiredRole);
+      } else {
+        setHasAccess(false);
       }
     });
+
     return () => subscription.unsubscribe();
   }, [requiredRole]);
 
+  // Loading state
   if (isAuthenticated === null || hasAccess === null) {
-    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
   }
 
+  // Not logged in
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
-  if (requiredRole && !hasAccess) return <Navigate to={requiredRole === "admin" ? "/dashboard/user" : "/dashboard/admin"} replace />;
+
+  // Wrong role
+  if (requiredRole && !hasAccess) {
+    return <Navigate to={requiredRole === "admin" ? "/dashboard/user" : "/dashboard/admin"} replace />;
+  }
 
   return <>{children}</>;
 };
 
+// ────── Main App ──────
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <BrowserRouter>
         <Routes>
+
+          {/* PUBLIC PAGES WITH LAYOUT */}
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -79,18 +108,29 @@ const App = () => (
             <Route path="*" element={<Navigate to="/404" replace />} />
           </Route>
 
+          {/* FULL-SCREEN PAGES (NO HEADER/FOOTER) */}
           <Route path="/assistant" element={<Assistant />} />
 
+          {/* REDIRECTS */}
           <Route path="/dashboard" element={<Navigate to="/dashboard/user" replace />} />
           <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
 
-          <Route path="/dashboard/user" element={<ProtectedRoute requiredRole="user"><Outlet /></ProtectedRoute>}>
+          {/* USER DASHBOARD (Protected) */}
+          <Route
+            path="/dashboard/user"
+            element={<ProtectedRoute requiredRole="user"><Outlet /></ProtectedRoute>}
+          >
             <Route index element={<Dashboard />} />
             <Route path="profile" element={<UserProfilePage />} />
             <Route path="qr" element={<UserQRPage />} />
           </Route>
 
-          <Route path="/dashboard/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+          {/* ADMIN DASHBOARD (Protected) */}
+          <Route
+            path="/dashboard/admin"
+            element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>}
+          />
+
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
