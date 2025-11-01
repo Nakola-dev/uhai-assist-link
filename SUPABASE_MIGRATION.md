@@ -174,19 +174,7 @@ npm run build
 The preview will automatically read environment variables from `.env`:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
-
-### Known Limitations
-
-**Emergency AI Chat**:
-- Temporarily disabled due to LOVABLE_API_KEY removal
-- Returns message: "AI Emergency Chat is currently unavailable"
-- Ready for integration with OpenAI, Anthropic, or other AI providers
-
-**To enable AI Chat**:
-1. Choose an AI provider (OpenAI, Anthropic, etc.)
-2. Add API key to Supabase Edge Function secrets
-3. Update `supabase/functions/emergency-chat/index.ts`
-4. Redeploy edge function
+- 'VITE_OPENROUTER_API_KEY'
 
 ## Testing Checklist
 
@@ -211,14 +199,14 @@ The preview will automatically read environment variables from `.env`:
 - [ ] User can view emergency organizations
 - [ ] User can view first aid tutorials
 - [ ] User can access emergency help button
-- [ ] User can view profile
+- [ ] User can view and edit profile
 - [ ] Click-to-call works for emergency contacts
 
 ## Next Steps
 
 1. **Create Admin Account**: Follow instructions in `ADMIN_SETUP.md`
 2. **Test Authentication**: Verify login/register flows
-3. **Configure AI Provider** (optional): Set up alternative to LOVABLE_API_KEY
+3. **Configure AI Provider** (DEEPSEEK R1): 
 4. **Deploy**: Application is ready for production deployment
 
 ## Support
