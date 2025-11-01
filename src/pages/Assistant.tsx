@@ -165,7 +165,7 @@ const Assistant: React.FC = () => {
       const { data } = await supabase
         .from("medical_profiles")
         .select("blood_type, allergies, chronic_conditions")
-        .eq("user_id", sessaion.user.id)
+        .eq("user_id", session.user.id)
         .maybeSingle();
       setUserProfile(data);
     }

@@ -1,15 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Heart, Shield, Smartphone, QrCode, MessageSquare } from "lucide-react";
-import Layout from "@/components/Layout";
 import { HeroSlider } from "@/components/HeroSlider";
 
 const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <Layout>
-      <div className="min-h-screen">
+    <div className="min-h-screen">
         <HeroSlider />
 
       {/* Features Section */}
@@ -86,8 +84,7 @@ const Index = () => {
         </div>
       </section>
 
-      </div>
-    </Layout>
+    </div>
   );
 };
 
