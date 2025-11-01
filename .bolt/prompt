@@ -1,0 +1,47 @@
+Project Name: 🆘 Uhai Assist — AI Smart Emergency Response System
+Tagline: When Every Second Counts, AI Responds
+🎯 Objective
+Build a full-stack, AI-powered emergency response web application for Kenya and Africa that provides:
+Real-time AI-guided first aid assistance
+QR-coded medical identity system
+Secure medical profile management
+Emergency contact directory and learning resources
+Subscription model (QR wristbands + premium features)
+
+🧠 What to Focus On
+When generating code or guidance:
+Prioritize speed, security, and scalability
+Use React (Vite + Tailwind) for the frontend
+Use Supabase (PostgreSQL + Auth + Edge Functions) as backend
+Integrate Python AI microservice (FastAPI) for AI chatbot logic
+Include QR code generation and scanning (using qrcode.react)
+Implement AES-256 encryption, JWT auth, and Row-Level Security for privacy
+Optimize for mobile-first experience (low bandwidth, offline-ready)
+
+Support user and admin roles
+
+Make the design modern, accessible, and responsive
+
+🧩 Stack Preferences
+Layer	Technology
+Frontend	React 18 + TypeScript + Vite + Tailwind CSS
+UI Components	Shadcn/UI, Radix UI, Lucide Icons
+State & Data	TanStack Query, Context API
+Backend	Supabase (PostgreSQL, Edge Functions, Auth)
+AI Layer	Python (FastAPI) or Supabase Edge Function calling OpenAI API
+QR System	QRCode.react for generation, scanner via HTML5 camera API
+Security	AES-256, JWT, HTTPS, RBAC, RLS
+Deployment	Lovable Cloud / Vercel / Netlify
+Version Control	GitHub
+💸 Monetization Focus
+Subscription for QR wristbands & medical ID tags
+Premium AI support (voice or advanced analysis)
+Institutional partnerships (schools, NGOs, Red Cross)
+Health data analytics insights for partners (with consent)
+
+📈 Deliverables
+Public website with landing page, tutorials, and AI demo
+Authenticated dashboards (User + Admin)
+Medical profile CRUD + encrypted QR generation
+AI chatbot integration (contextual first aid assistant)
+Deployment via  Vercel with Supabase backend
