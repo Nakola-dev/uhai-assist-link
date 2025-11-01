@@ -1,7 +1,8 @@
+// src/components/Header.tsx
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Activity, Menu, X, AlertCircle, ChevronDown, LogOut } from "lucide-react";
+import { Activity, Menu, X, AlertCircle, ChevronDown, LogOut, Shield } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
@@ -17,8 +18,10 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
 
+  // ────── Scroll Effect ──────
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -27,32 +30,56 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ────── Auth & Role Check ──────
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setIsAuthenticated(!!session);
+
+      if (session) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .maybeSingle();
+        setIsAdmin(profile?.role === "admin");
+      }
     };
-    
+
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setIsAuthenticated(!!session);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setIsAuthenticated(!!session);
+      if (session) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .maybeSingle();
+        setIsAdmin(profile?.role === "admin");
+      } else {
+        setIsAdmin(false);
       }
-    );
+    });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // ────── Sign Out ──────
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast({
       title: "Signed out",
-      description: "You have been successfully signed out."
+      description: "You have been successfully signed out.",
     });
     navigate("/");
   };
 
+  // ────── Navigation Items ──────
   const navItems = [
     { label: "Home", path: "/" },
     { label: "Emergency Help", path: "/assistant" },
@@ -71,7 +98,10 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity">
+          <Link
+            to="/"
+            className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
+          >
             <Activity className="h-6 w-6 text-primary" />
             <span>UhaiLink</span>
           </Link>
@@ -93,16 +123,29 @@ const Header = () => {
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <>
+                {isAdmin && (
+                  <Button
+                    onClick={() => navigate("/dashboard/admin")}
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
+                    <Shield className="h-4 w-4" />
+                    Admin
+                  </Button>
+                )}
                 <Button
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigate("/dashboard/user")}
                   variant="outline"
+                  size="sm"
                 >
                   Dashboard
                 </Button>
                 <Button
                   onClick={handleSignOut}
                   variant="ghost"
-                  className="flex items-center gap-2"
+                  size="sm"
+                  className="flex items-center gap-1"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign Out
@@ -112,7 +155,7 @@ const Header = () => {
               <>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
                       Sign In
                       <ChevronDown className="h-4 w-4" />
                     </Button>
@@ -134,7 +177,7 @@ const Header = () => {
                 </DropdownMenu>
                 <Button
                   onClick={() => navigate("/auth?signup=true")}
-                  variant="default"
+                  size="sm"
                   className="bg-secondary hover:bg-secondary/90 animate-pulse"
                 >
                   Create Free Account
@@ -143,9 +186,11 @@ const Header = () => {
             )}
             <Button
               onClick={() => navigate("/assistant")}
+              size="sm"
               className="bg-destructive hover:bg-destructive/90 text-white font-semibold shadow-emergency"
             >
-              Get Help Now 🚨
+              <AlertCircle className="h-4 w-4 mr-1" />
+              Get Help Now
             </Button>
           </div>
 
@@ -168,18 +213,32 @@ const Header = () => {
                     {item.label}
                   </Link>
                 ))}
-                <div className="border-t pt-6 flex flex-col gap-3">
+
+                <div className="border-t pt-6 space-y-3">
                   {isAuthenticated ? (
                     <>
+                      {isAdmin && (
+                        <Button
+                          onClick={() => {
+                            setIsOpen(false);
+                            navigate("/dashboard/admin");
+                          }}
+                          variant="outline"
+                          className="w-full justify-start"
+                        >
+                          <Shield className="h-4 w-4 mr-2" />
+                          Admin Dashboard
+                        </Button>
+                      )}
                       <Button
                         onClick={() => {
                           setIsOpen(false);
-                          navigate("/dashboard");
+                          navigate("/dashboard/user");
                         }}
                         variant="outline"
                         className="w-full"
                       >
-                        Dashboard
+                        User Dashboard
                       </Button>
                       <Button
                         onClick={() => {
@@ -187,7 +246,7 @@ const Header = () => {
                           handleSignOut();
                         }}
                         variant="ghost"
-                        className="w-full flex items-center gap-2"
+                        className="w-full flex items-center justify-start gap-2"
                       >
                         <LogOut className="h-4 w-4" />
                         Sign Out
@@ -223,7 +282,8 @@ const Header = () => {
                     }}
                     className="w-full bg-destructive hover:bg-destructive/90 text-white font-semibold"
                   >
-                    Get Help Now 🚨
+                    <AlertCircle className="h-5 w-5 mr-2" />
+                    Get Help Now
                   </Button>
                 </div>
               </div>
