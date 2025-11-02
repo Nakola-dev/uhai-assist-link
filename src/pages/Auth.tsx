@@ -22,21 +22,30 @@ const Auth = () => {
 
   // Prevent double-redirect from onAuthStateChange
   const isRedirecting = useRef(false);
+  const mounted = useRef(true);
 
   // ------------------------------------------------------------------ //
   // 1. Initial session check (if already logged in → go to dashboard)
   // ------------------------------------------------------------------ //
   useEffect(() => {
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
     const check = async () => {
       const { data } = await supabase.auth.getSession();
-      if (data.session) await redirectToDashboard(data.session.user.id);
+      if (data.session && mounted.current) {
+        await redirectToDashboard(data.session.user.id);
+      }
     };
     check();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (!session) return;
-        if (event === "SIGNED_IN" && !isRedirecting.current) {
+        if (!mounted.current) return;
+        if (session && event === "SIGNED_IN" && !isRedirecting.current) {
           await redirectToDashboard(session.user.id);
         }
       }

@@ -18,6 +18,7 @@ import {
   Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import QRScanner from "@/components/QRScanner";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -26,6 +27,7 @@ const Dashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [tutorials, setTutorials] = useState<any[]>([]);
+  const [showQRScanner, setShowQRScanner] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -83,7 +85,7 @@ const Dashboard = () => {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     toast({ title: "Signed out" });
-    navigate("/");
+    navigate("/auth", { replace: true });
   };
 
   if (loading) {
