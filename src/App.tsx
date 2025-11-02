@@ -99,9 +99,6 @@ const ProtectedRoute = ({
   }
 
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
-  if (requiredRole && !hasAccess) {
-    return <Navigate to="/dashboard/user" replace />;
-  }
 
   return <>{children}</>;
 };

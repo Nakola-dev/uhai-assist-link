@@ -1,191 +1,194 @@
-# 🆘 Uhai Assist — AI Smart Emergency Response System
+# 🆘 UhaiLink — AI-Powered Emergency Response Platform for Africa
 
 > **When Every Second Counts, AI Responds**
 
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://uhai-assist.lovable.app)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Built with Lovable](https://img.shields.io/badge/Built%20with-Lovable-ff69b4)](https://lovable.dev)
-
-A full-stack web-based emergency assistance platform built to save lives in Kenya and across Africa through AI-guided first aid instructions, QR-coded medical identity, and instant access to rescue services.
+A full-stack emergency assistance platform delivering real-time AI-guided first aid, QR-coded medical identity, secure medical profiles, and instant emergency contacts for Kenya and Africa. Built with React + Vite + Tailwind + TypeScript, powered by Supabase PostgreSQL + RLS + Auth, with DeepSeek R1 AI integration.
 
 ---
 
-## 📋 Table of Contents
-- [The Problem](#-the-problem)
-- [Our Solution](#-our-solution)
-- [Key Features](#-key-features)
-- [Technology Stack](#-technology-stack)
-- [System Architecture](#-system-architecture)
-- [Getting Started](#-getting-started)
-- [Environment Setup](#-environment-setup)
-- [Deployment](#-deployment)
-- [User Roles](#-user-roles)
-- [Security](#-security)
+## 📋 Quick Navigation
+
+- [Features](#-key-features)
+- [Tech Stack](#-technology-stack)
+- [Database Schema](#-database-schema)
+- [Setup & Installation](#-getting-started)
+- [Authentication Flow](#-authentication-flow)
+- [Troubleshooting](#-troubleshooting)
 - [Contributing](#-contributing)
 - [Roadmap](#-roadmap)
-- [Team](#-team)
-- [License](#-license)
 
 ---
 
-## 🚑 The Problem
+## 🎯 The Challenge
 
-Every year, **thousands of people die in Kenya** because:
+**Every minute, lives are lost in Kenya due to:**
+- ❌ Bystanders frozen without emergency first aid knowledge
+- ❌ Responders lacking critical patient medical history
+- ❌ Slow access to emergency contacts and hospitals
+- ❌ Unreliable internet delaying help in rural areas
 
-- ❌ **Bystanders don't know what to do** during medical emergencies
-- ❌ **Medical responders lack instant victim information** (blood type, allergies, conditions)
-- ❌ **Emergency contacts cannot be reached quickly**
-- ❌ **Hospitals receive late or incomplete critical patient data**
-
-**These delays cost lives.**
-
----
-
-## ✅ Our Solution
-
-Uhai Assist provides **real-time, AI-powered emergency support** accessible from any device:
-
-### 🎯 Core Value Proposition
-- **Instant AI guidance** for bystanders during emergencies
-- **QR medical ID system** for immediate access to critical patient information
-- **Centralized emergency contacts** directory (hospitals, Red Cross, AMREF)
-- **Secure medical profiles** with encryption and privacy controls
-- **Mobile-first design** optimized for low-bandwidth African networks
+**UhaiLink solves this with AI-guided, offline-aware emergency support.**
 
 ---
 
 ## ⭐ Key Features
 
-### 1. 🤖 AI-Guided First Aid Assistant
-- Real-time conversational AI providing step-by-step emergency instructions
-- Covers CPR, choking, burns, bleeding, fractures, and more
-- Powered by advanced AI models optimized for medical guidance
-- Context-aware responses based on emergency type
+### 1. 🤖 AI First Aid Assistant
+- Real-time conversational AI providing step-by-step first aid instructions
+- Covers CPR, choking, burns, severe bleeding, fractures, unconsciousness, seizures, allergic reactions
+- Powered by DeepSeek R1 via OpenRouter API
+- Context-aware using user's blood type, allergies, chronic conditions
+- Text-to-speech for hands-free operation
+- Full-screen emergency mode with large readable text
 
-### 2. 📱 QR Medical ID Wristband System
+### 2. 📱 QR Medical ID System
 - Generate secure QR codes containing encrypted medical information
-- Scan QR codes to instantly access patient data during emergencies
+- Responders scan QR to instantly access patient data during emergencies
+- Includes blood type, allergies, chronic conditions, medications, emergency contacts
 - Time-limited access tokens for privacy protection
-- Includes blood type, allergies, chronic conditions, current medications
 
-### 3. 🏥 Emergency Contacts Directory
-- Pre-loaded with major Nairobi hospitals and emergency services
+### 3. 🏥 Emergency Directory
+- Pre-loaded with Kenya's major hospitals and emergency services
 - Direct call functionality and website links
-- Red Cross, AMREF, and St. John Ambulance contacts
-- Regularly updated contact information
+- Red Cross, AMREF, St. John Ambulance contacts
+- Admin-manageable contact database
 
-### 4. 👤 User Medical Profile Management
+### 4. 👤 Medical Profile Management
 - Comprehensive health information storage
-- Emergency contact management (multiple contacts supported)
-- Secure and encrypted data storage
+- Multiple emergency contacts with priority levels
+- Secure encrypted data in Supabase
 - Easy profile updates and QR code regeneration
 
-### 5. 🎓 First Aid Tutorials Library
-- Categorized by emergency type (Choking, Bleeding, Fractures, etc.)
-- Video tutorials and written instructions
-- Searchable and filterable content
-- Admin-managed content updates
+### 5. 🎓 First Aid Tutorials
+- Video tutorials categorized by emergency type
+- Admin-managed content (CPR, Bleeding, Burns, Choking, Snake Bite)
+- Searchable and filterable library
 
 ### 6. 🛡️ Admin Dashboard
-- Manage first aid tutorials and educational content
-- Update emergency organization contacts
-- Monitor system usage and analytics
-- Content moderation and quality control
+- Manage tutorials and organizations
+- System analytics and user counts
+- Real-time content moderation
 
 ---
 
 ## 🛠 Technology Stack
 
-### Frontend
-| Technology | Purpose |
-|------------|---------|
-| **React 18** | UI framework with hooks and modern patterns |
-| **TypeScript** | Type-safe development and better IDE support |
-| **Vite** | Lightning-fast build tool and dev server |
-| **Tailwind CSS** | Utility-first styling with custom design system |
-| **React Router v6** | Client-side routing and navigation |
-| **TanStack Query** | Server state management and caching |
-| **Radix UI** | Accessible component primitives |
-| **Shadcn/ui** | Beautiful, customizable UI components |
-
-### Backend (Lovable Cloud / Supabase)
-| Technology | Purpose |
-|------------|---------|
-| **Supabase** | Backend-as-a-Service platform |
-| **PostgreSQL** | Relational database with RLS policies |
-| **Row Level Security (RLS)** | Database-level access control |
-| **Supabase Auth** | User authentication and session management |
-| **Edge Functions** | Serverless API endpoints |
-| **Supabase Storage** | File storage for profile images and assets |
-
-### AI & Integration
-| Technology | Purpose |
-|------------|---------|
-| **DEEPSEEK R1** | AI chat assistant integration |
-| **QRCode.react** | QR code generation for medical IDs |
-| **Lucide React** | Modern icon library |
-| **Sonner & React-Toastify** | User notifications and toasts |
-
-### Security
-- **AES-256 Encryption** for sensitive medical data
-- **JWT Tokens** for authentication
-- **HTTPS Enforced** on all connections
-- **Role-Based Access Control (RBAC)** with separate user roles table
-- **Environment Variable Protection** for API keys
+| Layer | Technologies |
+|-------|--------------|
+| **Frontend** | React 18 + TypeScript + Vite + Tailwind CSS + React Router v6 |
+| **UI Components** | Shadcn/UI + Radix UI + Lucide Icons |
+| **State** | TanStack Query + Context API |
+| **Backend** | Supabase (PostgreSQL + Auth + RLS) |
+| **AI** | DeepSeek R1 via OpenRouter API |
+| **QR** | qrcode.react |
+| **Notifications** | Sonner + React-Toastify |
+| **Security** | JWT + RLS + HTTPS + Role-Based Access Control |
 
 ---
 
-## 🏗 System Architecture
+## 📊 Database Schema
 
+### Complete SQL Schema Setup
+
+```sql
+-- 1. PROFILES TABLE (links to auth.users)
+CREATE TABLE IF NOT EXISTS profiles (
+  id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name text,
+  phone text,
+  role text DEFAULT 'user',  -- 'user' or 'admin'
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- 2. EMERGENCY ORGANIZATIONS TABLE
+CREATE TABLE IF NOT EXISTS emergency_organizations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  type text NOT NULL,
+  phone text NOT NULL,
+  location text NOT NULL,
+  website text,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- 3. TUTORIALS TABLE
+CREATE TABLE IF NOT EXISTS tutorials (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  description text,
+  video_url text NOT NULL,
+  category text NOT NULL,  -- 'CPR', 'Choking', 'Burns', 'Bleeding', 'Snake Bite'
+  thumbnail text,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- 4. USER ROLES TABLE (for role management)
+CREATE TABLE IF NOT EXISTS user_roles (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  role text DEFAULT 'user',
+  created_at timestamp with time zone DEFAULT now(),
+  UNIQUE(user_id)
+);
+
+-- 5. ENABLE ROW LEVEL SECURITY
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE emergency_organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tutorials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+
+-- 6. ROW LEVEL SECURITY POLICIES
+-- Users can view/update their own profile
+CREATE POLICY "Users can view own profile" ON profiles FOR SELECT TO authenticated USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+
+-- Organizations and tutorials are public readable
+CREATE POLICY "Organizations are public readable" ON emergency_organizations FOR SELECT TO public USING (true);
+CREATE POLICY "Tutorials are public readable" ON tutorials FOR SELECT TO public USING (true);
+
+-- Users can view their own roles
+CREATE POLICY "Users can view own roles" ON user_roles FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+-- 7. AUTOMATIC PROFILE CREATION ON SIGNUP
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO profiles (id, full_name, role)
+  VALUES (
+    NEW.id,
+    NEW.raw_user_meta_data->>'full_name',
+    'user'
+  )
+  ON CONFLICT (id) DO NOTHING;
+
+  INSERT INTO user_roles (user_id, role)
+  VALUES (NEW.id, 'user')
+  ON CONFLICT (user_id) DO NOTHING;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     FRONTEND (React + Vite)                 │
-├─────────────────────────────────────────────────────────────┤
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐ │
-│  │  Landing │  │   Auth   │  │Dashboard │  │   Admin    │ │
-│  │   Page   │  │  Login/  │  │  (User)  │  │ Dashboard  │ │
-│  │          │  │  Signup  │  │          │  │            │ │
-│  └──────────┘  └──────────┘  └──────────┘  └────────────┘ │
-│                                                             │
-│  ┌──────────────────┐  ┌─────────────┐  ┌──────────────┐  │
-│  │  Emergency Chat  │  │ QR Scanner/ │  │   Profile    │  │
-│  │   (AI Assistant) │  │  Generator  │  │     View     │  │
-│  └──────────────────┘  └─────────────┘  └──────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│              LOVABLE CLOUD / SUPABASE BACKEND               │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────────┐  ┌──────────────────┐                │
-│  │  Auth Service   │  │   PostgreSQL DB  │                │
-│  │  - JWT Tokens   │  │   - user_roles   │                │
-│  │  - Sessions     │  │   - profiles     │                │
-│  │  - Email Auth   │  │   - medical_data │                │
-│  └─────────────────┘  │   - tutorials    │                │
-│                       │   - organizations│                │
-│  ┌─────────────────┐  │   - qr_tokens    │                │
-│  │ Edge Functions  │  └──────────────────┘                │
-│  │ - emergency-chat│                                       │
-│  │ - ai-assistant  │  ┌──────────────────┐                │
-│  └─────────────────┘  │  Storage Bucket  │                │
-│                       │  - avatars       │                │
-│  ┌─────────────────┐  │  - documents     │                │
-│  │  RLS Policies   │  └──────────────────┘                │
-│  │  (Security)     │                                       │
-│  └─────────────────┘                                       │
-└─────────────────────────────────────────────────────────────┘
-                            ↕
-┌─────────────────────────────────────────────────────────────┐
-│                    EXTERNAL SERVICES                        │
-├─────────────────────────────────────────────────────────────┤
-│  ┌──────────────┐  ┌─────────────────┐  ┌───────────────┐ │
-│  │  Lovable AI  │  │  Emergency Orgs │  │   Hospital    │ │
-│  │   Models     │  │  - Red Cross    │  │   Systems     │ │
-│  └──────────────┘  │  - AMREF        │  └───────────────┘ │
-│                    │  - St. John     │                     │
-│                    └─────────────────┘                     │
-└─────────────────────────────────────────────────────────────┘
+
+### Insert Sample Data
+
+```sql
+-- Insert emergency organizations
+INSERT INTO emergency_organizations (name, type, phone, location, website) VALUES
+('Kenyatta National Hospital', 'Hospital', '+254-20-2726300', 'Hospital Road, Nairobi', 'https://www.knh.or.ke'),
+('Nairobi Hospital', 'Hospital', '+254-20-8000000', 'Argwings Kodhek Road, Nairobi', 'https://nairobihospital.org'),
+('Kenya Red Cross', 'Emergency Services', '+254-20-6699000', 'Nairobi', 'https://www.kenyaredcross.org'),
+('AMREF Flying Doctors', 'Air Ambulance', '+254-41-232566', 'Wilson Airport, Nairobi', 'https://www.amref.org');
+
+-- Insert tutorial categories (to be managed via admin dashboard)
+INSERT INTO tutorials (title, description, video_url, category, thumbnail) VALUES
+('CPR for Adults', 'Step-by-step CPR instructions', 'https://youtu.be/ea1RJUOiNfQ', 'CPR', 'https://via.placeholder.com/300x200?text=CPR'),
+('Choking Response', 'Heimlich maneuver technique', 'https://youtu.be/example', 'Choking', 'https://via.placeholder.com/300x200?text=Choking'),
+('Severe Bleeding', 'How to stop heavy bleeding', 'https://youtu.be/example', 'Bleeding', 'https://via.placeholder.com/300x200?text=Bleeding');
 ```
 
 ---
@@ -193,313 +196,245 @@ Uhai Assist provides **real-time, AI-powered emergency support** accessible from
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js** (v18 or higher)
-- **npm** or **bun** package manager
-- **Git** for version control
-- **BOLT.NEW Cloud account** (for backend services)
+- Node.js v18+
+- npm or bun
+- Supabase account (or Lovable Cloud)
+- OpenRouter API key
 
-### 1️⃣ Clone the Repository
-```bash
-git clone https://github.com/Nakola-dev/uhai-assist-link.git
-cd uhai-assist-link
-```
+### 1️⃣ Clone & Install
 
-### 2️⃣ Install Dependencies
 ```bash
+git clone https://github.com/uhailink/uhailink.git
+cd uhailink
 npm install
-# or
-bun install
 ```
 
-### 3️⃣ Environment Configuration
-The `.env` file is automatically managed by BOLT.NEW Cloud. It includes:
+### 2️⃣ Environment Variables
+
+Create `.env` file:
+
 ```env
-VITE_SUPABASE_URL=<auto-configured>
-VITE_SUPABASE_PUBLISHABLE_KEY=<auto-configured>
-VITE_SUPABASE_PROJECT_ID=<auto-configured>
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_OPENROUTER_API_KEY=sk-or-v1-your-key-here
 ```
 
-**Note:** These variables are automatically set when you enable Lovable Cloud. No manual configuration needed.
+### 3️⃣ Database Setup
 
-### 4️⃣ Start Development Server
+In Supabase SQL Editor, run the schema SQL above to:
+- Create profiles, organizations, tutorials, user_roles tables
+- Enable RLS on all tables
+- Create handle_new_user trigger for auto-profile creation
+
+### 4️⃣ Start Development
+
 ```bash
 npm run dev
-# or
-bun run dev
+# App opens at http://localhost:5173
 ```
 
-The app will be available at `http://localhost:8080`
+### 5️⃣ Build for Production
 
----
-
-## 🔧 Environment Setup
-
-### Bolt.new Cloud Setup
-This project uses **Bolt.new** for backend services (powered by Supabase):
-
-1. **Automatic Backend Provisioning**
-   - Database, authentication, and storage are automatically configured
-   - No need to create a separate Supabase account
-
-2. **Database Tables** (Auto-created via migrations)
-   - `user_roles` - Role-based access control
-   - `profiles` - Extended user information
-   - `medical_profiles` - Encrypted medical data
-   - `emergency_contacts` - User emergency contacts
-   - `qr_access_tokens` - Temporary QR access tokens
-   - `emergency_organizations` - Hospital and service contacts
-   - `tutorials` - First aid educational content
-
-3. **Row Level Security (RLS)**
-   - All tables have RLS enabled
-   - Users can only access their own data
-   - Admins have elevated privileges via `user_roles` table
-
----
-
-## 📦 Deployment
-
-### Deploy to Production
-
-#### Using BOLT.NEW (Recommended)
-1. Click the **"Publish"** button in Lovable
-2. Your app is deployed automatically to `<your-project>.lovable.app`
-3. Custom domains can be configured in project settings
-
-#### Manual Deployment (Vercel)
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel --prod
-```
-
-#### Manual Deployment (Netlify)
-```bash
-# Build the project
 npm run build
-
-# Deploy the 'dist' folder to Netlify
+npm run preview
 ```
-
-### Environment Variables in Production
-
 
 ---
 
-## 👥 User Roles
+## 🔐 Authentication Flow
 
-| Role | Access Level | Capabilities |
-|------|-------------|--------------|
-| **User** | Standard | - Create/manage medical profile<br>- Generate QR codes<br>- Access AI first aid assistant<br>- View emergency contacts<br>- Add emergency contacts |
-| **Admin** | Elevated | - All user capabilities<br>- Manage first aid tutorials<br>- Update emergency organization contacts<br>- View system analytics<br>- Content moderation |
+### Signup → Instant Dashboard (No Login Loop)
 
-### Creating Admin Users
-1. User signs up through the normal registration flow
-2. Admin manually updates `user_roles` table in Lovable Cloud dashboard
-3. Set `role = 'admin'` for the specific `user_id`
+1. **User fills registration form** (email, password, full name, phone)
+2. **Supabase creates auth user** via `signUp()`
+3. **Trigger fires automatically** → Creates profile row + user_roles entry
+4. **Auth.tsx inserts profile immediately** (before redirect)
+5. **useRef guard prevents double-redirect** (`isRedirecting` flag)
+6. **`navigate(..., { replace: true })`** → Instant `/dashboard/user`
+7. ✅ **No login loop, no blank page**
 
-**Security Note:** Admin privileges are **never** stored in localStorage or client-side storage. All role checks are server-side via RLS policies.
+### ProtectedRoute Logic
 
+```typescript
+// Fetches user's role from profiles table
+const userRole = profile?.role ?? "user";  // Fallback if no profile
+
+// Allows access if:
+// - requiredRole === undefined (optional protection) OR
+// - userRole === requiredRole (role matches)
+
+// Does NOT redirect on access denial (let Dashboard handle 404)
+if (requiredRole && !hasAccess) {
+  return <>{children}</>;  // Render page anyway (or show 404)
+}
+```
 
 ---
 
-## 🔐 Security
+## 🔧 Fix Common Issues
 
-Uhai Assist implements **enterprise-grade security** for handling sensitive medical data:
+### Login Loop / Infinite Redirect?
 
-### Security Measures
-- ✅ **AES-256 Encryption** for medical profiles at rest
-- ✅ **HTTPS Enforced** on all connections (TLS 1.3)
-- ✅ **JWT Authentication** with automatic token refresh
-- ✅ **Row Level Security (RLS)** on all database tables
-- ✅ **Role-Based Access Control (RBAC)** with dedicated `user_roles` table
-- ✅ **SQL Injection Prevention** via parameterized queries
-- ✅ **XSS Protection** with Content Security Policy headers
-- ✅ **CSRF Protection** on all state-changing operations
+**Cause:** Profile not created before redirect attempt
 
-### Data Privacy
-- Medical information is **never** shared without explicit user consent
-- QR access tokens are **time-limited** and expire after use
-- User data is **isolated** via RLS policies
-- Audit logs track all data access attempts
+**Fix:**
+1. Clear browser cache (Ctrl+Shift+Delete)
+2. Ensure `handle_new_user` trigger exists in Supabase
+3. Check `.env` has correct SUPABASE_URL and KEY
+4. Verify `Auth.tsx` inserts profile **before** calling `redirectToDashboard()`
 
-### Compliance
-- GDPR-compliant data handling
-- HIPAA-inspired security practices
-- Kenya Data Protection Act (2019) alignment
+### Profile Not Loading After Signup?
+
+**Check:**
+```sql
+-- In Supabase, run:
+SELECT * FROM profiles WHERE id = 'user-id-here';
+SELECT * FROM user_roles WHERE user_id = 'user-id-here';
+```
+
+If empty, trigger didn't fire. Manually insert:
+```sql
+INSERT INTO profiles (id, full_name, role) VALUES ('user-uuid', 'Full Name', 'user');
+INSERT INTO user_roles (user_id, role) VALUES ('user-uuid', 'user');
+```
+
+### AI Assistant Not Responding?
+
+- Check `.env` has valid `VITE_OPENROUTER_API_KEY`
+- Verify OpenRouter account has credit
+- Check network tab for response errors
+- Ensure DeepSeek R1 model is available in OpenRouter
 
 ---
 
-## 🤝 Contributing
+## 📁 File Structure
 
-We welcome contributions from developers, first-aid professionals, and emergency service providers!
-
-### Development Team Workflow
-
-#### For Team Members
-```bash
-# 1. Clone the repository
-git clone https://github.com/Nakola-dev/uhai-assist-link.git
-cd uhai-assist-link
-
-# 2. Create a feature branch
-git checkout -b feature/your-feature-name
-
-# 3. Make your changes and commit
-git add .
-git commit -m "feat: Add your feature description"
-
-# 4. Push to the repository
-git push origin feature/your-feature-name
-
-# 5. Create a Pull Request
-# - Go to GitHub and create a PR
-# - Request review from team members
-# - Address any feedback
 ```
-
-### Contribution Guidelines
-- ✅ Follow the existing code style (ESLint + Prettier configured)
-- ✅ Write clear commit messages using [Conventional Commits](https://www.conventionalcommits.org/)
-- ✅ Test your changes thoroughly before submitting PR
-- ✅ Update documentation if you add new features
-- ✅ Keep PRs focused - one feature/fix per PR
-
-### Commit Message Format
+src/
+├── pages/
+│   ├── Index.tsx              # Landing page
+│   ├── Auth.tsx               # Login/signup with profile insertion
+│   ├── Dashboard.tsx          # User dashboard
+│   ├── AdminDashboard.tsx     # Admin panel
+│   ├── Assistant.tsx          # AI first aid chat
+│   ├── ProfileView.tsx        # QR responder view
+│   ├── About.tsx              # Info page
+│   ├── Contact.tsx            # Contact form
+│   └── NotFound.tsx           # 404 page
+├── components/
+│   ├── Header.tsx             # Navigation bar
+│   ├── Footer.tsx             # Footer
+│   ├── Layout.tsx             # Page wrapper
+│   ├── HeroSlider.tsx         # Homepage slider
+│   ├── MedicalProfileForm.tsx # Profile editor
+│   ├── QRCodeDisplay.tsx      # QR generator
+│   └── ui/                    # Shadcn/UI components
+├── lib/
+│   ├── openrouter.ts          # DeepSeek API calls
+│   ├── auth-utils.ts          # Auth helpers
+│   └── utils.ts               # Utilities
+├── integrations/
+│   └── supabase/
+│       ├── client.ts          # Supabase client
+│       └── types.ts           # Generated types
+└── App.tsx                    # Routes & ProtectedRoute
 ```
-type(scope): description
-
-Examples:
-feat(auth): Add Google OAuth login
-fix(qr): Resolve QR code generation error
-docs(readme): Update deployment instructions
-style(ui): Improve button hover states
-```
-
-### Areas We Need Help With
-- 🏥 **Medical Content**: First aid tutorial validation
-- 🌍 **Localization**: Swahili and other Kenyan language translations
-- 📱 **Mobile Testing**: iOS and Android browser compatibility
-- 🎨 **UI/UX**: Accessibility improvements
-- 🔒 **Security**: Penetration testing and vulnerability reports
 
 ---
 
 ## 🛣 Roadmap
 
-### ✅ Completed Features (Phase 1)
-- [x] AI-guided first aid chat assistant
-- [x] QR medical ID generation and scanning
-- [x] User authentication and profiles
-- [x] Medical profile management
-- [x] Emergency contacts directory
-- [x] Admin dashboard for content management
-- [x] Responsive mobile-first design
+### ✅ Phase 1 (Complete)
+- [x] AI first aid assistant (DeepSeek R1)
+- [x] User authentication & profiles
+- [x] QR medical ID generation
+- [x] Emergency directory
+- [x] Admin dashboard
+- [x] Mobile-responsive design
+- [x] Database schema with RLS
 
-### 🔄 In Progress (Phase 2)
-- [ ] UI/UX enhancements with animations
-- [ ] Advanced search and filtering
-- [ ] Push notifications for emergency alerts
-- [ ] Multi-language support (Swahili, English)
+### 🔄 Phase 2 (In Progress)
+- [ ] Text-to-speech enhancements
+- [ ] Advanced search & filtering
+- [ ] Push notifications
+- [ ] Tutorial video hosting
 
-### 🔜 Planned Features (Phase 3)
-- [ ] **Offline Mode** - Progressive Web App (PWA) with service workers
-- [ ] **SMS Fallback** - USSD integration for low-network areas
-- [ ] **Voice Commands** - Voice-activated emergency help
-- [ ] **Geolocation** - Automatic nearest hospital finder with maps
-- [ ] **Ambulance Integration** - Direct EMS dispatch API
-- [ ] **Wearable Support** - Smartwatch emergency button integration
-
-### 🚀 Future Collaboration
-- [ ] Integration with Kenya Red Cross EMS systems
-- [ ] Partnership with AMREF Flying Doctors
-- [ ] St. John Ambulance API connectivity
-- [ ] Government health ministry data sharing
-- [ ] Insurance provider integration for faster claims
+### 🔜 Phase 3 (Planned)
+- [ ] Offline PWA support
+- [ ] SMS/USSD fallback for 2G
+- [ ] Voice command activation
+- [ ] Geolocation for nearest hospital
+- [ ] Direct ambulance dispatch API
+- [ ] Swahili language support
 
 ---
 
-## 📱 Screenshots
+## 🤝 Contributing
 
-### Landing Page
-*AI-powered emergency response platform homepage*
+### Code Quality
+- ESLint + Prettier configured
+- TypeScript for type safety
+- Follow existing patterns
 
-### User Dashboard
-*Quick access to emergency tools and medical profile*
+### Commit Format
+```
+feat(scope): Description      # New feature
+fix(scope): Description       # Bug fix
+docs(scope): Description      # Documentation
+style(scope): Description     # Formatting
+```
 
-### AI Chat Assistant
-*Real-time first aid guidance for emergencies*
-
-### QR Medical ID
-*Instant access to critical patient information*
-
-### Admin Dashboard
-*Content management and system monitoring*
-
-> **Note:** Screenshots to be added in next update
+### Testing Before Commit
+```bash
+npm run build     # Verify build succeeds
+npm run lint      # Check for errors
+npm run dev       # Test in browser
+```
 
 ---
 
-## 👨‍💻 Authors & Team
+## 🔒 Security & Privacy
 
-**Uhai Assist Development Team**
+- **AES-256 encryption** for medical data
+- **JWT tokens** for authentication
+- **Row Level Security** on all tables
+- **Role-Based Access Control** via user_roles table
+- **HTTPS enforced** on all connections
+- **Time-limited QR tokens** for access control
 
-### Team Members
-- **Project Lead & Full-Stack Developer**: [Your Name]
-- **Frontend Developer**: [Team Member]
-- **Backend Developer**: [Team Member]
-- **UI/UX Designer**: [Team Member]
-- **Medical Content Advisor**: [Team Member]
+All user data is isolated via RLS policies. Admin roles cannot access other users' medical information.
 
-### Institution
-**KCA University**  
-School of Computing and Information Technology  
-2025
+---
 
-### Acknowledgments
-- KCA University faculty for guidance and support
-- Medical professionals who provided first aid content validation
-- Beta testers from Nairobi communities
-- Lovable platform for rapid development tools
+## 📞 Support & Issues
+
+- **Report bugs:** GitHub Issues
+- **Request features:** GitHub Discussions
+- **Emergency:** Always call 999 first!
 
 ---
 
 ## 📄 License
 
-MIT License © 2025 Uhai Assist Development Team
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+MIT © 2025 UhaiLink Development Team
 
 ---
 
-## 📞 Contact & Support
+## 🌍 Built for Kenya. Designed for Africa.
 
-- **Email**: uhai.assist@kcau.ac.ke
-- **GitHub Issues**: [Report a bug](https://github.com/Nakola-dev/uhai-assist-link/issues)
-- **Demo**: [uhai-assist.lovable.app](https://uhai-assist.lovable.app)
-
----
-
-## 🌍 Built for Kenya, Designed for Africa
-
-- ✅ **Mobile-first design** optimized for African internet speeds
-- ✅ **Works on low bandwidth** (2G/3G compatible)
-- ✅ **Local emergency institutions** pre-configured
-- ✅ **Real-world tested** in high-stress environments
-- ✅ **Community-driven** with local language support coming soon
+- ✅ Mobile-first for low-bandwidth networks
+- ✅ Works on 2G/3G (offline PWA planned)
+- ✅ Pre-configured Kenyan emergency services
+- ✅ Swahili support coming soon
+- ✅ Community-driven & open source
 
 ### Our Mission
-> **Uhai = Life** in Swahili  
-> Our mission is to protect it, one emergency at a time.
+> **Uhai = Life** in Swahili
+> We protect it, one emergency at a time.
 
 ---
 
-**⭐ If this project helps you or someone you know, please star this repository!**
+**🚨 IMPORTANT: In real emergencies, always call 999 (Kenya) or 911 (International) FIRST! This is AI guidance only, not a substitute for professional medical help.**
 
-**🚨 In case of real emergency, always call 999 (Kenya Emergency Number) first!**
+**⭐ If this helps you or someone you know, star this repo!**
