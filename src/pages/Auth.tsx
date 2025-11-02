@@ -60,16 +60,21 @@ const Auth = () => {
     if (isRedirecting.current) return;
     isRedirecting.current = true;
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", userId)
-      .maybeSingle();
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .maybeSingle();
 
-    const role = profile?.role ?? "user"; // fallback if profile missing
-    navigate(role === "admin" ? "/dashboard/admin" : "/dashboard/user", {
-      replace: true,
-    });
+      const role = profile?.role ?? "user";
+      navigate(role === "admin" ? "/dashboard/admin" : "/dashboard/user", {
+        replace: true,
+      });
+    } catch (error) {
+      console.error("Redirect error:", error);
+      isRedirecting.current = false;
+    }
   };
 
   // ------------------------------------------------------------------ //
@@ -106,15 +111,21 @@ const Auth = () => {
         });
         if (error) throw error;
 
-        // 1. Create profile row **immediately**
+        if (!data.user) {
+          throw new Error("User creation failed");
+        }
+
+        // 1. Create profile row **immediately** before redirect
         const { error: profileError } = await supabase
           .from("profiles")
           .insert({
-            id: data.user!.id,
+            id: data.user.id,
             full_name: fullName,
             phone,
-            role: "user", // <-- default role
-          });
+            role: "user",
+          })
+          .select()
+          .single();
 
         if (profileError) {
           console.error("Profile creation failed:", profileError);
@@ -123,11 +134,13 @@ const Auth = () => {
             title: "Profile error",
             description: "Account created but profile failed. Contact support.",
           });
-        } else {
-          toast({ title: "Account created!" });
+          return;
         }
 
-        // redirect is handled by onAuthStateChange
+        toast({ title: "Account created! Signing you in..." });
+
+        // 2. Manually redirect since we just created the profile
+        await redirectToDashboard(data.user.id);
       }
     } catch (err: any) {
       toast({ variant: "destructive", title: "Error", description: err.message });

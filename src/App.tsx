@@ -58,7 +58,8 @@ const ProtectedRoute = ({
           .select("role")
           .eq("id", session.user.id)
           .maybeSingle();
-        setHasAccess(profile?.role === requiredRole);
+        const userRole = profile?.role ?? "user";
+        setHasAccess(userRole === requiredRole);
       } else {
         setHasAccess(true);
       }
@@ -78,7 +79,8 @@ const ProtectedRoute = ({
               .select("role")
               .eq("id", session.user.id)
               .maybeSingle();
-            setHasAccess(profile?.role === requiredRole);
+            const userRole = profile?.role ?? "user";
+            setHasAccess(userRole === requiredRole);
           } else {
             setHasAccess(true);
           }
@@ -98,8 +100,7 @@ const ProtectedRoute = ({
 
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
   if (requiredRole && !hasAccess) {
-    const redirect = requiredRole === "admin" ? "/dashboard/user" : "/dashboard/admin";
-    return <Navigate to={redirect} replace />;
+    return <Navigate to="/dashboard/user" replace />;
   }
 
   return <>{children}</>;
