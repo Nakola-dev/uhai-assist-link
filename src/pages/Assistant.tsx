@@ -237,6 +237,9 @@ const Assistant: React.FC = () => {
     }
 
     try {
+      // Debug logging
+      console.log('Starting message send...');
+      
       const contextInfo = userProfile
         ? `\n\nPATIENT CONTEXT: Blood Type: ${userProfile.blood_type || "Unknown"}, Allergies: ${userProfile.allergies || "None"}, Conditions: ${userProfile.chronic_conditions || "None"}`
         : "";
@@ -246,6 +249,13 @@ const Assistant: React.FC = () => {
         ...messages.map((m) => ({ role: m.role, content: m.content })),
         { role: "user", content: messageToSend },
       ];
+
+      // Debug: Log request details
+      console.log('OpenRouter Request:', {
+        apiKey: import.meta.env.VITE_OPENROUTER_API_KEY ? 'Present' : 'Missing',
+        messageCount: openRouterMessages.length,
+        lastMessage: messageToSend
+      });
 
       const response = await sendMessage(openRouterMessages);
       const reader = response.body?.getReader();
@@ -289,14 +299,19 @@ const Assistant: React.FC = () => {
 
       if (assistantMessage) speakText(assistantMessage);
     } catch (error: any) {
+      console.error('Assistant Error:', {
+        message: error.message,
+        error: error
+      });
       toast({
         variant: "destructive",
         title: "Connection Failed",
-        description: "Using offline guide. Check internet.",
+        description: error.message || "Using offline guide. Check internet.",
       });
       showOfflineGuide(messageToSend);
     } finally {
       setIsStreaming(false);
+      console.log('Message handling completed');
     }
   };
 

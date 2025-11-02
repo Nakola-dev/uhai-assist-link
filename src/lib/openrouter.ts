@@ -25,7 +25,7 @@ export async function sendMessage(messages: OpenRouterMessage[]): Promise<Respon
       "X-Title": "UhaiLink Emergency AI",
     },
     body: JSON.stringify({
-      model: "deepseek/deepseek-r1-0528:free",
+      model: "anthropic/claude-2",
       messages,
       stream: true,
       temperature: 0.7,
