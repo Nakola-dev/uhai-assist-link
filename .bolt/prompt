@@ -2,7 +2,6 @@ Project Overview
 Uhai Assist is a mobile-first, AI-powered emergency response platform for Kenya and Africa. It delivers real-time AI-guided first aid, QR-coded medical identity, secure medical profiles, emergency contacts, and educational resources via a React + TypeScript + Vite + Tailwind frontend, backed by Supabase (PostgreSQL + Auth + RLS + Edge Functions) and an AI microservice powered by DeepSeek R1. The system is optimized for low-bandwidth 2G/3G networks, offline PWA support, and institutional scalability (Red Cross, hospitals, schools).
 
 Core Architecture & Stack
-
 Frontend: React 18 + TypeScript + Vite + Tailwind CSS
 
 UI: Shadcn/UI + Radix UI + Lucide Icons
@@ -14,7 +13,6 @@ Deployment: Vercel / Netlify / Lovable Cloud
 
 
 Backend: Supabase
-
 Auth: Supabase Auth (email/password, future: Google/OAuth)
 Database: PostgreSQL with Row Level Security (RLS)
 Storage: Profile images, tutorial thumbnails
@@ -22,14 +20,12 @@ Edge Functions: Serverless API logic (optional)
 
 
 AI Layer: DeepSeek R1 (via API key in .env)
-
 Integrated via FastAPI microservice or Supabase Edge Function
 Context-aware first aid assistant (CPR, choking, burns, etc.)
 Voice mode (future, iOS/Android apps)
 
 
 Security
-
 AES-256 encryption for medical data (client-side before DB write)
 JWT + RLS + HTTPS
 Role-based access: user | admin
@@ -49,7 +45,6 @@ Never redirect to opposite role → always fallback to /dashboard/user or /
 
 
 Dashboard Access
-
 /dashboard/user → requiredRole="user"
 /dashboard/admin → requiredRole="admin"
 Admin dashboard: manage tutorials, organizations, analytics
