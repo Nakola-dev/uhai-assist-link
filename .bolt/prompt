@@ -1,47 +1,132 @@
-Project Name: 🆘 Uhai Assist — AI Smart Emergency Response System
-Tagline: When Every Second Counts, AI Responds
-🎯 Objective
-Build a full-stack, AI-powered emergency response web application for Kenya and Africa that provides:
-Real-time AI-guided first aid assistance
-QR-coded medical identity system
-Secure medical profile management
-Emergency contact directory and learning resources
-Subscription model (QR wristbands + premium features)
+Project Overview
+Uhai Assist is a mobile-first, AI-powered emergency response platform for Kenya and Africa. It delivers real-time AI-guided first aid, QR-coded medical identity, secure medical profiles, emergency contacts, and educational resources via a React + TypeScript + Vite + Tailwind frontend, backed by Supabase (PostgreSQL + Auth + RLS + Edge Functions) and an AI microservice powered by DeepSeek R1. The system is optimized for low-bandwidth 2G/3G networks, offline PWA support, and institutional scalability (Red Cross, hospitals, schools).
 
-🧠 What to Focus On
-When generating code or guidance:
-Prioritize speed, security, and scalability
-Use React (Vite + Tailwind) for the frontend
-Use Supabase (PostgreSQL + Auth + Edge Functions) as backend
-Integrate Python AI microservice (FastAPI) for AI chatbot logic
-Include QR code generation and scanning (using qrcode.react)
-Implement AES-256 encryption, JWT auth, and Row-Level Security for privacy
-Optimize for mobile-first experience (low bandwidth, offline-ready)
+Core Architecture & Stack
 
-Support user and admin roles
+Frontend: React 18 + TypeScript + Vite + Tailwind CSS
 
-Make the design modern, accessible, and responsive
+UI: Shadcn/UI + Radix UI + Lucide Icons
+State: TanStack Query + Context API
+Routing: React Router v6 with role-based protected routes
+QR: qrcode.react + HTML5 camera scanner
+Notifications: Sonner + React-Toastify
+Deployment: Vercel / Netlify / Lovable Cloud
 
-🧩 Stack Preferences
-Layer	Technology
-Frontend	React 18 + TypeScript + Vite + Tailwind CSS
-UI Components	Shadcn/UI, Radix UI, Lucide Icons
-State & Data	TanStack Query, Context API
-Backend	Supabase (PostgreSQL, Edge Functions, Auth)
-AI Layer	Python (FastAPI) or Supabase Edge Function calling OpenAI API
-QR System	QRCode.react for generation, scanner via HTML5 camera API
-Security	AES-256, JWT, HTTPS, RBAC, RLS
-Deployment	Lovable Cloud / Vercel / Netlify
-Version Control	GitHub
-💸 Monetization Focus
-Subscription for QR wristbands & medical ID tags
-Premium AI support (voice or advanced analysis)
-Institutional partnerships (schools, NGOs, Red Cross)
-Health data analytics insights for partners (with consent)
 
-📈 Deliverables
-Public website with landing page, tutorials, and AI demo
-Authenticated dashboards (User + Admin)
-Medical profile CRUD + encrypted QR generation
-AI chatbot integration (contextual first aid assistant)
-Deployment via  Vercel with Supabase backend
+Backend: Supabase
+
+Auth: Supabase Auth (email/password, future: Google/OAuth)
+Database: PostgreSQL with Row Level Security (RLS)
+Storage: Profile images, tutorial thumbnails
+Edge Functions: Serverless API logic (optional)
+
+
+AI Layer: DeepSeek R1 (via API key in .env)
+
+Integrated via FastAPI microservice or Supabase Edge Function
+Context-aware first aid assistant (CPR, choking, burns, etc.)
+Voice mode (future, iOS/Android apps)
+
+
+Security
+
+AES-256 encryption for medical data (client-side before DB write)
+JWT + RLS + HTTPS
+Role-based access: user | admin
+
+Database Schema (Supabase)
+Authentication & Authorization Flow
+Signup/Login (Auth.tsx)
+On signUp, immediately insert profiles row with role: 'user'
+Use navigate(..., { replace: true }) once via useRef(isRedirecting)
+onAuthStateChange handles final redirect
+
+
+ProtectedRoute (App.tsx)
+Fetch session → fetch profiles.role
+Fallback: profile?.role ?? 'user'
+Never redirect to opposite role → always fallback to /dashboard/user or /
+
+
+Dashboard Access
+
+/dashboard/user → requiredRole="user"
+/dashboard/admin → requiredRole="admin"
+Admin dashboard: manage tutorials, organizations, analytics
+
+
+AI Assistant Integration
+File: Assistant.tsx (formerly EmergencyChat.tsx – delete and replace all references)
+Powered by DeepSeek R1 API
+.env:
+VITE_SUPABASE_URL=https://zxsvdbtyzbgkmavbdxdg.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c3ZkYnR5emJna21hdmJkeGRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3MDY3MDQsImV4cCI6MjA3NzI4MjcwNH0.Rnp0kORxITvilpFkhJHSqFYA6RQGODAkC_zuirdXKxU
+VITE_OPENROUTER_API_KEY=sk-or-v1-af0c03bcfe19990e1ea15248a376cf71026df15039a4d9aecf695e67bc089e4
+
+
+Context-aware prompts:
+"You are a first aid expert in Kenya. Respond in simple English/Swahili. Guide step-by-step for [emergency type]."
+Key Features & Implementation
+FeatureImplementationAI First Aid AssistantAssistant.tsx + DeepSeek R1 APIQR Medical IDGenerate encrypted QR → scan → decrypt with time-limited tokenMedical ProfileCRUD with AES-256 (encrypt before DB)Emergency DirectoryPre-loaded + admin editableTutorialsAdmin-managed videos + thumbnailsOffline PWAService workers + IndexedDB sync
+
+File Cleanup & Naming
+Delete: EmergencyChat.tsx, EmergencyChat.*
+Rename: All imports → import Assistant from "@/pages/Assistant"
+Use only: Assistant.tsx as the AI chat component
+
+
+README.md – Full Rewrite (Bolt must regenerate)
+md# 🆘 Uhai Assist — AI Smart Emergency Response System
+> **When Every Second Counts, AI Responds**
+
+A full-stack, AI-powered emergency platform for Kenya & Africa.
+## 🚀 Features
+- 🤖 **DeepSeek R1 AI First Aid Assistant**
+- 📱 **QR Medical ID Wristband**
+- 🔐 **AES-256 Encrypted Profiles**
+- 🏥 **Emergency Contacts Directory**
+- 🎓 **First Aid Tutorials**
+- 🛡️ **Admin Dashboard**
+
+## 🛠 Tech Stack
+- **Frontend**: React 18 + TypeScript + Vite + Tailwind + Shadcn/UI
+- **Backend**: Supabase (PostgreSQL + Auth + RLS)
+- **AI**: DeepSeek R1 (`.env` key required)
+- **QR**: `qrcode.react`
+- **Deployment**: Vercel / Lovable
+
+## 🗄 Database Setup (Run in Supabase SQL Editor)
+```sql
+-- [Full schema + trigger from above]
+🔐 Environment
+VITE_SUPABASE_URL=https://zxsvdbtyzbgkmavbdxdg.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c3ZkYnR5emJna21hdmJkeGRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3MDY3MDQsImV4cCI6MjA3NzI4MjcwNH0.Rnp0kORxITvilpFkhJHSqFYA6RQGODAkC_zuirdXKxU
+VITE_OPENROUTER_API_KEY=sk-or-v1-af0c03bcfe19990e1ea15248a376cf71026df15039a4d9aecf695e67bc089e4
+🛠 Development
+bashnpm install
+npm run dev
+🚨 Troubleshooting
+
+Login loop? Clear cache. Ensure profiles row exists.
+AI not responding? Check .env key.
+EmergencyChat error? Removed — use Assistant.tsx.
+
+📱 Mobile-First
+Optimized for 2G/3G. PWA with offline mode.
+🤝 Contributing
+See [CONTRIBUTING.md]
+
+Uhai = Life. We protect it.
+text---
+
+**Bolt Instructions Summary**
+
+1. **Start Supabase DB** → apply full schema + trigger + RLS  
+2. **Delete `EmergencyChat.*`** → rename all imports to `Assistant`  
+3. **Fix auth flow** → insert profile on signup, `replace: true`, `useRef` guard  
+4. **Update `ProtectedRoute`** → role fallback, no mutual redirect  
+5. **Rewrite `README.md`** → full match with current system  
+6. **Add `.env.example`** with DeepSeek key  
+7. **Test**: signup/login → instant `/dashboard/user` or `/admin`, AI works, no loops
+
+**Implement now. Deploy. Save lives.**
