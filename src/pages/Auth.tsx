@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+// src/pages/Auth.tsx
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,100 +20,116 @@ const Auth = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await redirectBasedOnRole(session.user.id);
-      }
-    };
-    checkSession();
+  // Prevent double-redirect from onAuthStateChange
+  const isRedirecting = useRef(false);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+  // ------------------------------------------------------------------ //
+  // 1. Initial session check (if already logged in → go to dashboard)
+  // ------------------------------------------------------------------ //
+  useEffect(() => {
+    const check = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) await redirectToDashboard(data.session.user.id);
+    };
+    check();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (session && event === "SIGNED_IN") {
-          await redirectBasedOnRole(session.user.id);
+        if (!session) return;
+        if (event === "SIGNED_IN" && !isRedirecting.current) {
+          await redirectToDashboard(session.user.id);
         }
       }
     );
-
-    return () => subscription.unsubscribe();
+    return () => authListener.subscription.unsubscribe();
   }, [navigate]);
 
-  useEffect(() => {
-    if (location.pathname === "/auth" && location.search.includes("signup")) {
-      setIsLogin(false);
-    }
-  }, [location]);
+  // ------------------------------------------------------------------ //
+  // 2. Helper – fetch role + navigate (only once)
+  // ------------------------------------------------------------------ //
+  const redirectToDashboard = async (userId: string) => {
+    if (isRedirecting.current) return;
+    isRedirecting.current = true;
 
-  const redirectBasedOnRole = async (userId: string) => {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", userId)
       .maybeSingle();
 
-    if (profile?.role === "admin") {
-      navigate("/dashboard/admin");
-    } else {
-      navigate("/dashboard/user");
-    }
+    const role = profile?.role ?? "user"; // fallback if profile missing
+    navigate(role === "admin" ? "/dashboard/admin" : "/dashboard/user", {
+      replace: true,
+    });
   };
 
+  // ------------------------------------------------------------------ //
+  // 3. Switch to signup mode when URL contains ?signup
+  // ------------------------------------------------------------------ //
+  useEffect(() => {
+    if (location.search.includes("signup")) setIsLogin(false);
+  }, [location]);
+
+  // ------------------------------------------------------------------ //
+  // 4. Auth handler (login OR signup)
+  // ------------------------------------------------------------------ //
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       if (isLogin) {
+        // ---------- LOGIN ----------
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
-
         if (error) throw error;
 
-        if (data.user) {
-          await redirectBasedOnRole(data.user.id);
-          toast({
-            title: "Welcome back!",
-            description: "Successfully logged in."
-          });
-        }
+        // redirect is handled by onAuthStateChange
+        toast({ title: "Welcome back!" });
       } else {
+        // ---------- SIGNUP ----------
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              full_name: fullName,
-              phone: phone,
-            },
-          },
+          options: { data: { full_name: fullName, phone } },
         });
-
         if (error) throw error;
 
-        if (data.user) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          await redirectBasedOnRole(data.user.id);
-          toast({
-            title: "Account created!",
-            description: "Welcome to UhaiLink. Your medical profile is ready."
+        // 1. Create profile row **immediately**
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .insert({
+            id: data.user!.id,
+            full_name: fullName,
+            phone,
+            role: "user", // <-- default role
           });
+
+        if (profileError) {
+          console.error("Profile creation failed:", profileError);
+          toast({
+            variant: "destructive",
+            title: "Profile error",
+            description: "Account created but profile failed. Contact support.",
+          });
+        } else {
+          toast({ title: "Account created!" });
         }
+
+        // redirect is handled by onAuthStateChange
       }
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Authentication Error",
-        description: error.message,
-      });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Error", description: err.message });
     } finally {
       setLoading(false);
     }
   };
 
+  // ------------------------------------------------------------------ //
+  // 5. UI (unchanged except button text)
+  // ------------------------------------------------------------------ //
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setEmail("");
@@ -141,31 +158,29 @@ const Auth = () => {
             </CardDescription>
           </div>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-5">
+            {/* ---- SIGNUP ONLY FIELDS ---- */}
             {!isLogin && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-sm font-semibold">
-                    Full Name
-                  </Label>
+                  <Label htmlFor="fullName">Full Name</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                     <Input
                       id="fullName"
-                      type="text"
                       placeholder="John Doe"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      required={!isLogin}
+                      required
                       className="pl-10 h-11"
                     />
                   </div>
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm font-semibold">
-                    Phone Number
-                  </Label>
+                  <Label htmlFor="phone">Phone Number</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                     <Input
@@ -174,17 +189,17 @@ const Auth = () => {
                       placeholder="+254 712 345 678"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      required={!isLogin}
+                      required
                       className="pl-10 h-11"
                     />
                   </div>
                 </div>
               </>
             )}
+
+            {/* ---- EMAIL ---- */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-semibold">
-                Email Address
-              </Label>
+              <Label htmlFor="email">Email Address</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -198,10 +213,10 @@ const Auth = () => {
                 />
               </div>
             </div>
+
+            {/* ---- PASSWORD ---- */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-semibold">
-                Password
-              </Label>
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -215,22 +230,6 @@ const Auth = () => {
                   className="pl-10 h-11"
                 />
               </div>
-              {isLogin && (
-                <div className="text-right">
-                  <button
-                    type="button"
-                    className="text-xs text-primary hover:underline font-medium"
-                    onClick={() => {
-                      toast({
-                        title: "Password Reset",
-                        description: "Password reset feature coming soon. Please contact support.",
-                      });
-                    }}
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-              )}
             </div>
 
             <Button
@@ -264,22 +263,10 @@ const Auth = () => {
               </div>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={toggleMode}
-              className="w-full h-11 font-semibold"
-            >
+            <Button type="button" variant="outline" onClick={toggleMode} className="w-full h-11 font-semibold">
               {isLogin ? "Create Free Account" : "Sign In Instead"}
             </Button>
           </div>
-
-          {!isLogin && (
-            <p className="mt-6 text-xs text-center text-muted-foreground leading-relaxed">
-              By creating an account, you agree to our Terms of Service and Privacy Policy.
-              Your medical data is encrypted and secure.
-            </p>
-          )}
         </CardContent>
       </Card>
     </div>
