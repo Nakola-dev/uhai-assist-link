@@ -116,7 +116,7 @@ const Auth = () => {
         }
 
         // 1. Create profile row **immediately** before redirect
-        const { error: profileError } = await supabase
+        await supabase
           .from("profiles")
           .insert({
             id: data.user.id,
@@ -124,18 +124,7 @@ const Auth = () => {
             phone,
             role: "user",
           })
-          .select()
-          .single();
-
-        if (profileError) {
-          console.error("Profile creation failed:", profileError);
-          toast({
-            variant: "destructive",
-            title: "Profile error",
-            description: "Account created but profile failed. Contact support.",
-          });
-          return;
-        }
+          .throwOnError();
 
         toast({ title: "Account created! Signing you in..." });
 
