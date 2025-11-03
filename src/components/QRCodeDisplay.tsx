@@ -8,54 +8,12 @@ import { QRCodeSVG } from "qrcode.react";
 import { Download, RefreshCw, Loader2, Copy, Printer } from "lucide-react";
 
 interface QRCodeDisplayProps {
-  userId: string;
+  token: string;
+  onRegenerate: () => void;
 }
 
-const QRCodeDisplay = ({ userId }: QRCodeDisplayProps) => {
-  const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState<string>("");
+const QRCodeDisplay = ({ token, onRegenerate }: QRCodeDisplayProps) => {
   const { toast } = useToast();
-
-  useEffect(() => {
-    fetchToken();
-  }, [userId]);
-
-  const fetchToken = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("qr_access_tokens")
-        .select("access_token")
-        .eq("user_id", userId)
-        .eq("is_active", true)
-        .single();
-      if (error) throw error;
-      setToken(data.access_token);
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const regenerateToken = async () => {
-    try {
-      const newToken = crypto.randomUUID();
-      const { error } = await supabase
-        .from("qr_access_tokens")
-        .update({ 
-          access_token: newToken, 
-          is_active: true,
-          updated_at: new Date().toISOString() 
-        })
-        .eq("user_id", userId);
-      if (error) throw error;
-      setToken(newToken);
-      toast({ title: "Regenerated", description: "New QR code generated" });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
-    }
-  };
 
   const downloadQR = () => {
     const svg = document.getElementById("qr-code") as HTMLElement;
@@ -87,14 +45,6 @@ const QRCodeDisplay = ({ userId }: QRCodeDisplayProps) => {
 
   const qrUrl = `${window.location.origin}/profile/${token}`;
 
-  if (loading) {
-    return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -120,7 +70,7 @@ const QRCodeDisplay = ({ userId }: QRCodeDisplayProps) => {
           <Button onClick={downloadQR} size="sm" className="w-full">
             <Download className="h-4 w-4 mr-1" /> Download
           </Button>
-          <Button onClick={regenerateToken} variant="outline" size="sm" className="w-full">
+          <Button onClick={onRegenerate} variant="outline" size="sm" className="w-full">
             <RefreshCw className="h-4 w-4 mr-1" /> Regenerate
           </Button>
           <Button onClick={copyUrl} variant="outline" size="sm" className="w-full">
