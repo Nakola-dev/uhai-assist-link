@@ -34,6 +34,20 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at timestamp with time zone DEFAULT now()
 );
 
+
+-- QR Access Tokens Table
+CREATE TABLE IF NOT EXISTS public.qr_access_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+  access_token TEXT NOT NULL UNIQUE,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_token_active ON public.qr_access_tokens(access_token, is_active) WHERE is_active = true;
+
+
 CREATE TABLE IF NOT EXISTS public.emergency_organizations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
