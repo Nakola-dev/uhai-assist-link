@@ -5,6 +5,9 @@
     - `profiles` - User profiles linked to auth.users with full medical data
     - `emergency_organizations` - Kenyan hospitals and emergency services
     - `tutorials` - First aid video tutorials
+    - 'qr_access_tokens'- Access to medical info for better decision making
+
+
 
   2. Security
     - RLS enabled on all tables
@@ -14,7 +17,7 @@
 
   3. Trigger
     - `handle_new_user()` automatically creates profile row on auth signup
-    - Inserts full_name, phone from metadata, role defaults to 'user'
+    - Inserts full_name, email, phone from metadata, role defaults to 'user'
 */
 
 CREATE TABLE IF NOT EXISTS public.profiles (

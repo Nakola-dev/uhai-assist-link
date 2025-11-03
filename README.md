@@ -130,43 +130,7 @@ AS $$
   )
 $$;
 
--- 4. USER ROLES TABLE
-CREATE TABLE IF NOT EXISTS public.user_roles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  role app_role NOT NULL DEFAULT 'user',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  UNIQUE (user_id, role)
-);
-
-ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
-
--- RLS for user_roles
-DROP POLICY IF EXISTS "users_view_own_roles" ON public.user_roles;
-CREATE POLICY "users_view_own_roles"
-  ON public.user_roles FOR SELECT
-  TO authenticated
-  USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "admins_view_all_roles" ON public.user_roles;
-CREATE POLICY "admins_view_all_roles"
-  ON public.user_roles FOR SELECT
-  TO authenticated
-  USING (public.has_role(auth.uid(), 'admin'));
-
-DROP POLICY IF EXISTS "admins_insert_roles" ON public.user_roles;
-CREATE POLICY "admins_insert_roles"
-  ON public.user_roles FOR INSERT
-  TO authenticated
-  WITH CHECK (public.has_role(auth.uid(), 'admin'));
-
-DROP POLICY IF EXISTS "admins_delete_roles" ON public.user_roles;
-CREATE POLICY "admins_delete_roles"
-  ON public.user_roles FOR DELETE
-  TO authenticated
-  USING (public.has_role(auth.uid(), 'admin'));
-
--- 5. PROFILES TABLE (merged – includes email, avatar, DOB)
+-- 4. PROFILES TABLE (merged – includes email, DOB)
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email TEXT UNIQUE NOT NULL,
@@ -174,7 +138,6 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   full_name TEXT,
   phone TEXT,
   date_of_birth DATE,
-  avatar_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
@@ -208,7 +171,7 @@ CREATE POLICY "admins_update_all_profiles"
   USING (public.has_role(auth.uid(), 'admin'))
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
--- 6. MEDICAL PROFILES (encrypted in app layer)
+-- 5. MEDICAL PROFILES (encrypted in app layer)
 CREATE TABLE IF NOT EXISTS public.medical_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -244,7 +207,7 @@ CREATE POLICY "public_medical_via_qr"
     )
   );
 
--- 7. USER EMERGENCY CONTACTS
+-- 6. USER EMERGENCY CONTACTS
 CREATE TABLE IF NOT EXISTS public.emergency_contacts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -278,7 +241,7 @@ CREATE POLICY "public_contacts_via_qr"
     )
   );
 
--- 8. QR ACCESS TOKENS
+-- 7. QR ACCESS TOKENS
 CREATE TABLE IF NOT EXISTS public.qr_access_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -299,7 +262,7 @@ CREATE POLICY "owner_qr_all"
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
--- 9. PUBLIC EMERGENCY ORGANIZATIONS
+-- 8. PUBLIC EMERGENCY ORGANIZATIONS
 CREATE TABLE IF NOT EXISTS public.emergency_organizations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
@@ -326,7 +289,7 @@ CREATE POLICY "admin_write_orgs"
   TO authenticated
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
--- 10. FIRST AID TUTORIALS
+-- 9. FIRST AID TUTORIALS
 CREATE TABLE IF NOT EXISTS public.tutorials (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
@@ -592,9 +555,7 @@ if (requiredRole && !hasAccess) {
 ---
 
 ## 🔧 Fix Common Issues
-
 ### Login Loop / Infinite Redirect?
-
 **Cause:** Profile not created before redirect attempt
 
 **Fix:**
@@ -602,21 +563,6 @@ if (requiredRole && !hasAccess) {
 2. Ensure `handle_new_user` trigger exists in Supabase
 3. Check `.env` has correct SUPABASE_URL and KEY
 4. Verify `Auth.tsx` inserts profile **before** calling `redirectToDashboard()`
-
-### Profile Not Loading After Signup?
-
-**Check:**
-```sql
--- In Supabase, run:
-SELECT * FROM profiles WHERE id = 'user-id-here';
-SELECT * FROM user_roles WHERE user_id = 'user-id-here';
-```
-
-If empty, trigger didn't fire. Manually insert:
-```sql
-INSERT INTO profiles (id, full_name, role) VALUES ('user-uuid', 'Full Name', 'user');
-INSERT INTO user_roles (user_id, role) VALUES ('user-uuid', 'user');
-```
 
 ### AI Assistant Not Responding?
 
@@ -638,6 +584,8 @@ src/
 │   ├── AdminDashboard.tsx     # Admin panel
 │   ├── Assistant.tsx          # AI first aid chat
 │   ├── ProfileView.tsx        # QR responder view
+|   |----UserProfilePage       #
+|   |----UserQRPage            #
 │   ├── About.tsx              # Info page
 │   ├── Contact.tsx            # Contact form
 │   └── NotFound.tsx           # 404 page
@@ -646,6 +594,7 @@ src/
 │   ├── Footer.tsx             # Footer
 │   ├── Layout.tsx             # Page wrapper
 │   ├── HeroSlider.tsx         # Homepage slider
+│   ├── EmergencyContactsForm.tsx  #Emergency contacts
 │   ├── MedicalProfileForm.tsx # Profile editor
 │   ├── QRCodeDisplay.tsx      # QR generator
 │   └── ui/                    # Shadcn/UI components
@@ -658,6 +607,10 @@ src/
 │       ├── client.ts          # Supabase client
 │       └── types.ts           # Generated types
 └── App.tsx                    # Routes & ProtectedRoute
+└── Supabase                   # prostgresssql schema
+    └── Migrations             #
+        └──Database_schema.sql         # 
+        └── Seed_initial_data.sql      #
 ```
 
 ---

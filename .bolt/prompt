@@ -50,15 +50,7 @@ Dashboard Access
 Admin dashboard: manage tutorials, organizations, analytics
 
 
-AI Assistant Integration
-File: Assistant.tsx (formerly EmergencyChat.tsx – delete and replace all references)
-Powered by DeepSeek R1 API
-.env:
-VITE_SUPABASE_URL=https://zxsvdbtyzbgkmavbdxdg.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4c3ZkYnR5emJna21hdmJkeGRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3MDY3MDQsImV4cCI6MjA3NzI4MjcwNH0.Rnp0kORxITvilpFkhJHSqFYA6RQGODAkC_zuirdXKxU
-VITE_OPENROUTER_API_KEY=sk-or-v1-af0c03bcfe19990e1ea15248a376cf71026df15039a4d9aecf695e67bc089e4
-
-
+AI Assistant
 Context-aware prompts:
 "You are a first aid expert in Kenya. Respond in simple English/Swahili. Guide step-by-step for [emergency type]."
 Key Features & Implementation
@@ -100,11 +92,6 @@ VITE_OPENROUTER_API_KEY=sk-or-v1-af0c03bcfe19990e1ea15248a376cf71026df15039a4d9a
 🛠 Development
 bashnpm install
 npm run dev
-🚨 Troubleshooting
-
-Login loop? Clear cache. Ensure profiles row exists.
-AI not responding? Check .env key.
-EmergencyChat error? Removed — use Assistant.tsx.
 
 📱 Mobile-First
 Optimized for 2G/3G. PWA with offline mode.
@@ -113,15 +100,4 @@ See [CONTRIBUTING.md]
 
 Uhai = Life. We protect it.
 text---
-
-**Bolt Instructions Summary**
-
-1. **Start Supabase DB** → apply full schema + trigger + RLS  
-2. **Delete `EmergencyChat.*`** → rename all imports to `Assistant`  
-3. **Fix auth flow** → insert profile on signup, `replace: true`, `useRef` guard  
-4. **Update `ProtectedRoute`** → role fallback, no mutual redirect  
-5. **Rewrite `README.md`** → full match with current system  
-6. **Add `.env.example`** with DeepSeek key  
-7. **Test**: signup/login → instant `/dashboard/user` or `/admin`, AI works, no loops
-
 **Implement now. Deploy. Save lives.**
