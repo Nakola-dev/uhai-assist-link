@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name text,
   phone text,
+  email TEXT UNIQUE NOT NULL,
   blood_type text,
   allergies text[],
   chronic_conditions text[],
