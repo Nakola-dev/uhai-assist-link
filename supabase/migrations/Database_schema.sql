@@ -5,7 +5,6 @@
   - emergency_organizations: 5 Kenyan services (pre-loaded)
   - tutorials: 7 first-aid videos (pre-loaded)
   - qr_access_tokens: emergency QR access
-  - NO avatar_url column
 */
 
 --------------------------------------------------------------------
