@@ -1,3 +1,4 @@
+// src/pages/AdminDashboard.tsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +15,6 @@ import {
   Trash2,
   Users,
   Activity,
-  LayoutDashboard
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -39,6 +39,9 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  /* --------------------------------------------------------------
+   * 1. Verify admin access + load initial data
+   * ------------------------------------------------------------ */
   useEffect(() => {
     checkAdminStatus();
   }, []);
@@ -52,81 +55,102 @@ const AdminDashboard = () => {
 
     setUser(session.user);
     const hasAccess = await checkAdminAccess(session.user.id);
-
     if (!hasAccess) {
       toast({
         title: "Access Denied",
         description: "You don't have admin privileges",
-        variant: "destructive"
+        variant: "destructive",
       });
-      navigate("/dashboard");
+      navigate("/dashboard/user");
       return;
     }
 
     setIsAdmin(true);
     setLoading(false);
-    fetchData();
-    fetchUserCount();
+    await Promise.all([fetchData(), fetchUserCount()]);
   };
 
+  /* --------------------------------------------------------------
+   * 2. Load public tables
+   * ------------------------------------------------------------ */
   const fetchData = async () => {
-    const { data: orgs } = await supabase
-      .from("emergency_organizations")
-      .select("*")
-      .order("name");
+    const [orgRes, tutRes] = await Promise.all([
+      supabase.from("emergency_organizations").select("*").order("name"),
+      supabase.from("tutorials").select("*").order("created_at", { ascending: false }),
+    ]);
 
-    const { data: tuts } = await supabase
-      .from("tutorials")
-      .select("*")
-      .order("created_at", { ascending: false });
+    if (orgRes.error) {
+      console.error("Org fetch error:", orgRes.error);
+      toast({ title: "Failed to load organizations", variant: "destructive" });
+    } else {
+      setOrganizations(orgRes.data ?? []);
+    }
 
-    setOrganizations(orgs || []);
-    setTutorials(tuts || []);
+    if (tutRes.error) {
+      console.error("Tutorial fetch error:", tutRes.error);
+      toast({ title: "Failed to load tutorials", variant: "destructive" });
+    } else {
+      setTutorials(tutRes.data ?? []);
+    }
   };
 
+  /* --------------------------------------------------------------
+   * 3. USER COUNT – now from **profiles** (no user_roles table)
+   * ------------------------------------------------------------ */
   const fetchUserCount = async () => {
-    const { count } = await supabase
-      .from("user_roles")
+    const { count, error } = await supabase
+      .from("profiles")
       .select("*", { count: "exact", head: true });
-    setUserCount(count || 0);
+
+    if (error) {
+      console.error("User count error:", error);
+      toast({ title: "Failed to load user count", variant: "destructive" });
+    } else {
+      setUserCount(count ?? 0);
+    }
   };
 
+  /* --------------------------------------------------------------
+   * 4. Sign-out
+   * ------------------------------------------------------------ */
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    toast({ title: "Signed out successfully" });
-    navigate("/");
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({ title: "Sign-out failed", variant: "destructive" });
+    } else {
+      toast({ title: "Signed out successfully" });
+      navigate("/");
+    }
   };
 
+  /* --------------------------------------------------------------
+   * 5. ORGANIZATION CRUD
+   * ------------------------------------------------------------ */
   const handleOrgSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get("name") as string,
-      type: formData.get("type") as string,
-      phone: formData.get("phone") as string,
-      location: formData.get("location") as string,
-      website: formData.get("website") as string || null,
+    const fd = new FormData(e.currentTarget);
+    const payload = {
+      name: fd.get("name") as string,
+      type: fd.get("type") as string,
+      phone: fd.get("phone") as string,
+      location: fd.get("location") as string,
+      website: (fd.get("website") as string) || null,
     };
 
+    let err: any = null;
     if (editingOrg) {
-      const { error } = await supabase
+      ({ error: err } = await supabase
         .from("emergency_organizations")
-        .update(data)
-        .eq("id", editingOrg.id);
-      if (error) {
-        toast({ title: "Error updating organization", variant: "destructive" });
-      } else {
-        toast({ title: "Organization updated successfully" });
-      }
+        .update(payload)
+        .eq("id", editingOrg.id));
     } else {
-      const { error } = await supabase
-        .from("emergency_organizations")
-        .insert([data]);
-      if (error) {
-        toast({ title: "Error adding organization", variant: "destructive" });
-      } else {
-        toast({ title: "Organization added successfully" });
-      }
+      ({ error: err } = await supabase.from("emergency_organizations").insert([payload]));
+    }
+
+    if (err) {
+      toast({ title: `Error ${editingOrg ? "updating" : "adding"} organization`, variant: "destructive" });
+    } else {
+      toast({ title: `Organization ${editingOrg ? "updated" : "added"} successfully` });
     }
 
     setOrgDialogOpen(false);
@@ -134,36 +158,45 @@ const AdminDashboard = () => {
     fetchData();
   };
 
+  const handleDeleteOrg = async (id: string) => {
+    if (!confirm("Delete this organization?")) return;
+    const { error } = await supabase.from("emergency_organizations").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Error deleting organization", variant: "destructive" });
+    } else {
+      toast({ title: "Organization deleted" });
+      fetchData();
+    }
+  };
+
+  /* --------------------------------------------------------------
+   * 6. TUTORIAL CRUD
+   * ------------------------------------------------------------ */
   const handleTutSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      title: formData.get("title") as string,
-      description: formData.get("description") as string,
-      video_url: formData.get("video_url") as string,
-      category: formData.get("category") as string,
-      thumbnail: formData.get("thumbnail") as string || null,
+    const fd = new FormData(e.currentTarget);
+    const payload = {
+      title: fd.get("title") as string,
+      description: fd.get("description") as string,
+      video_url: fd.get("video_url") as string,
+      category: fd.get("category") as string,
+      thumbnail: (fd.get("thumbnail") as string) || null,
     };
 
+    let err: any = null;
     if (editingTut) {
-      const { error } = await supabase
+      ({ error: err } = await supabase
         .from("tutorials")
-        .update(data)
-        .eq("id", editingTut.id);
-      if (error) {
-        toast({ title: "Error updating tutorial", variant: "destructive" });
-      } else {
-        toast({ title: "Tutorial updated successfully" });
-      }
+        .update(payload)
+        .eq("id", editingTut.id));
     } else {
-      const { error } = await supabase
-        .from("tutorials")
-        .insert([data]);
-      if (error) {
-        toast({ title: "Error adding tutorial", variant: "destructive" });
-      } else {
-        toast({ title: "Tutorial added successfully" });
-      }
+      ({ error: err } = await supabase.from("tutorials").insert([payload]));
+    }
+
+    if (err) {
+      toast({ title: `Error ${editingTut ? "updating" : "adding"} tutorial`, variant: "destructive" });
+    } else {
+      toast({ title: `Tutorial ${editingTut ? "updated" : "added"} successfully` });
     }
 
     setTutDialogOpen(false);
@@ -171,34 +204,20 @@ const AdminDashboard = () => {
     fetchData();
   };
 
-  const handleDeleteOrg = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this organization?")) return;
-    const { error } = await supabase
-      .from("emergency_organizations")
-      .delete()
-      .eq("id", id);
-    if (error) {
-      toast({ title: "Error deleting organization", variant: "destructive" });
-    } else {
-      toast({ title: "Organization deleted successfully" });
-      fetchData();
-    }
-  };
-
   const handleDeleteTut = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this tutorial?")) return;
-    const { error } = await supabase
-      .from("tutorials")
-      .delete()
-      .eq("id", id);
+    if (!confirm("Delete this tutorial?")) return;
+    const { error } = await supabase.from("tutorials").delete().eq("id", id);
     if (error) {
       toast({ title: "Error deleting tutorial", variant: "destructive" });
     } else {
-      toast({ title: "Tutorial deleted successfully" });
+      toast({ title: "Tutorial deleted" });
       fetchData();
     }
   };
 
+  /* --------------------------------------------------------------
+   * 7. Loading UI
+   * ------------------------------------------------------------ */
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary-light/10 to-accent-light/10">
@@ -211,8 +230,12 @@ const AdminDashboard = () => {
 
   if (!isAdmin) return null;
 
+  /* --------------------------------------------------------------
+   * 8. Render Dashboard
+   * ------------------------------------------------------------ */
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary-light/10 to-accent-light/10">
+      {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-lg sticky top-0 z-50 shadow-md">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -237,16 +260,16 @@ const AdminDashboard = () => {
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-7xl space-y-8">
+        {/* Stats Cards */}
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="border-l-4 border-l-primary">
             <CardHeader className="pb-3">
               <CardDescription className="text-xs font-semibold text-muted-foreground uppercase">
                 Total Users
               </CardDescription>
-              <CardTitle className="text-4xl font-bold text-primary">
-                {userCount}
-              </CardTitle>
+              <CardTitle className="text-4xl font-bold text-primary">{userCount}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -261,9 +284,7 @@ const AdminDashboard = () => {
               <CardDescription className="text-xs font-semibold text-muted-foreground uppercase">
                 Emergency Contacts
               </CardDescription>
-              <CardTitle className="text-4xl font-bold text-secondary">
-                {organizations.length}
-              </CardTitle>
+              <CardTitle className="text-4xl font-bold text-secondary">{organizations.length}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -278,9 +299,7 @@ const AdminDashboard = () => {
               <CardDescription className="text-xs font-semibold text-muted-foreground uppercase">
                 Tutorials
               </CardDescription>
-              <CardTitle className="text-4xl font-bold text-accent">
-                {tutorials.length}
-              </CardTitle>
+              <CardTitle className="text-4xl font-bold text-accent">{tutorials.length}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -291,6 +310,7 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
+        {/* Tabs */}
         <Tabs defaultValue="organizations" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 h-12">
             <TabsTrigger value="organizations" className="text-base">
@@ -303,6 +323,7 @@ const AdminDashboard = () => {
             </TabsTrigger>
           </TabsList>
 
+          {/* ---------- Organizations Tab ---------- */}
           <TabsContent value="organizations" className="space-y-4">
             <Card>
               <CardHeader>
@@ -313,6 +334,7 @@ const AdminDashboard = () => {
                       Manage hospital and emergency service contacts
                     </CardDescription>
                   </div>
+
                   <Dialog open={orgDialogOpen} onOpenChange={setOrgDialogOpen}>
                     <DialogTrigger asChild>
                       <Button
@@ -324,12 +346,14 @@ const AdminDashboard = () => {
                         Add Organization
                       </Button>
                     </DialogTrigger>
+
                     <DialogContent className="max-w-lg">
                       <DialogHeader>
                         <DialogTitle className="text-xl">
                           {editingOrg ? "Edit" : "Add"} Organization
                         </DialogTitle>
                       </DialogHeader>
+
                       <form onSubmit={handleOrgSubmit} className="space-y-4 mt-4">
                         <div className="space-y-2">
                           <Label htmlFor="name">Organization Name</Label>
@@ -381,6 +405,7 @@ const AdminDashboard = () => {
                             placeholder="https://example.com"
                           />
                         </div>
+
                         <Button type="submit" className="w-full" size="lg">
                           {editingOrg ? "Update" : "Add"} Organization
                         </Button>
@@ -389,6 +414,7 @@ const AdminDashboard = () => {
                   </Dialog>
                 </div>
               </CardHeader>
+
               <CardContent>
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
@@ -441,6 +467,7 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
+          {/* ---------- Tutorials Tab ---------- */}
           <TabsContent value="tutorials" className="space-y-4">
             <Card>
               <CardHeader>
@@ -451,6 +478,7 @@ const AdminDashboard = () => {
                       Manage educational video content
                     </CardDescription>
                   </div>
+
                   <Dialog open={tutDialogOpen} onOpenChange={setTutDialogOpen}>
                     <DialogTrigger asChild>
                       <Button
@@ -462,12 +490,14 @@ const AdminDashboard = () => {
                         Add Tutorial
                       </Button>
                     </DialogTrigger>
+
                     <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle className="text-xl">
                           {editingTut ? "Edit" : "Add"} Tutorial
                         </DialogTitle>
                       </DialogHeader>
+
                       <form onSubmit={handleTutSubmit} className="space-y-4 mt-4">
                         <div className="space-y-2">
                           <Label htmlFor="title">Tutorial Title</Label>
@@ -521,6 +551,7 @@ const AdminDashboard = () => {
                             placeholder="https://img.youtube.com/vi/..."
                           />
                         </div>
+
                         <Button type="submit" className="w-full" size="lg">
                           {editingTut ? "Update" : "Add"} Tutorial
                         </Button>
@@ -529,6 +560,7 @@ const AdminDashboard = () => {
                   </Dialog>
                 </div>
               </CardHeader>
+
               <CardContent>
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
