@@ -5,28 +5,30 @@ import { supabase } from "@/integrations/supabase/client";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, QrCode, AlertCircle } from "lucide-react";
+import { ArrowLeft, QrCode, AlertCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
 
 const UserQRPage = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
-
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  /* ──────────────────────── SESSION & INITIAL TOKEN ──────────────────────── */
+  /* --------------------------------------------------------------
+   * 1. Auth + Session + Token Setup
+   * ------------------------------------------------------------ */
   useEffect(() => {
     const init = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
 
       if (error || !session) {
+        toast({
+          variant: "destructive",
+          title: "Session Expired",
+          description: "Please sign in again.",
+        });
         navigate("/auth", { replace: true });
         return;
       }
@@ -36,19 +38,35 @@ const UserQRPage = () => {
     };
 
     init();
-  }, [navigate]);
 
-  /* ──────────────────────── CREATE TOKEN IF MISSING ──────────────────────── */
+    // Listen for auth changes (e.g., sign-out in another tab)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!session) {
+          navigate("/auth", { replace: true });
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [navigate, toast]);
+
+  /* --------------------------------------------------------------
+   * 2. Ensure Token Exists (create if missing)
+   * ------------------------------------------------------------ */
   const ensureToken = async (uid: string) => {
     try {
       setLoading(true);
+
       const { data, error } = await supabase
         .from("qr_access_tokens")
         .select("access_token")
         .eq("user_id", uid)
         .maybeSingle();
 
-      if (error && error.code !== "PGRST116") throw error;
+      if (error && error.code !== "PGRST116") {
+        throw error;
+      }
 
       if (data?.access_token) {
         setToken(data.access_token);
@@ -66,22 +84,27 @@ const UserQRPage = () => {
         setToken(newToken);
       }
     } catch (err: any) {
+      console.error("Token fetch/create error:", err);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: err.message,
+        title: "QR Token Error",
+        description: err.message || "Failed to load QR code.",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  /* ──────────────────────── REGENERATE TOKEN ──────────────────────── */
+  /* --------------------------------------------------------------
+   * 3. Regenerate Token
+   * ------------------------------------------------------------ */
   const handleRegenerate = async () => {
     if (!userId) return;
+
     setRegenerating(true);
     try {
       const newToken = crypto.randomUUID();
+
       const { error } = await supabase
         .from("qr_access_tokens")
         .update({
@@ -95,32 +118,40 @@ const UserQRPage = () => {
       setToken(newToken);
       toast({
         title: "Success",
-        description: "QR code regenerated",
+        description: "QR code regenerated successfully",
       });
     } catch (err: any) {
+      console.error("Regenerate error:", err);
       toast({
         variant: "destructive",
         title: "Error",
-        description: err.message,
+        description: err.message || "Failed to regenerate QR code.",
       });
     } finally {
       setRegenerating(false);
     }
   };
 
-  /* ──────────────────────── LOADING STATE ──────────────────────── */
+  /* --------------------------------------------------------------
+   * 4. Loading UI
+   * ------------------------------------------------------------ */
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary-light/10 to-accent-light/10">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <div className="flex items-center gap-3">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <span className="text-lg font-medium">Generating your QR code...</span>
+        </div>
       </div>
     );
   }
 
-  /* ──────────────────────── MAIN UI ──────────────────────── */
+  /* --------------------------------------------------------------
+   * 5. Main Render
+   * ------------------------------------------------------------ */
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary-light/10 to-accent-light/10">
-      {/* ── Header ── */}
+      {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -140,9 +171,9 @@ const UserQRPage = () => {
         </div>
       </header>
 
-      {/* ── Content ── */}
+      {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-2xl">
-        <Card className="shadow-lg">
+        <Card className="shadow-lg border-t-4 border-t-primary">
           <CardHeader className="space-y-4">
             <div className="flex items-start gap-3">
               <div className="p-3 rounded-full bg-primary/10">
@@ -155,12 +186,20 @@ const UserQRPage = () => {
                 </p>
               </div>
             </div>
+
+            <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+              <AlertCircle className="h-4 w-4" />
+              <span>
+                <strong>Security Tip:</strong> Regenerate your QR code if you suspect it has been compromised.
+              </span>
+            </div>
           </CardHeader>
 
           <CardContent>
             {regenerating ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Regenerating QR code...</p>
               </div>
             ) : (
               <QRCodeDisplay token={token} onRegenerate={handleRegenerate} />
