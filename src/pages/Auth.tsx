@@ -20,27 +20,26 @@ const Auth = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  // Prevent double-redirect from onAuthStateChange
+  // Prevent double-redirect
   const isRedirecting = useRef(false);
   const mounted = useRef(true);
 
-  // ------------------------------------------------------------------ //
-  // 1. Initial session check (if already logged in → go to dashboard)
-  // ------------------------------------------------------------------ //
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       mounted.current = false;
     };
   }, []);
 
+  // Check session on mount + listen to auth changes
   useEffect(() => {
-    const check = async () => {
+    const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session && mounted.current) {
         await redirectToDashboard(data.session.user.id);
       }
     };
-    check();
+    checkSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -50,97 +49,113 @@ const Auth = () => {
         }
       }
     );
-    return () => authListener.subscription.unsubscribe();
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [navigate]);
 
-  // ------------------------------------------------------------------ //
-  // 2. Helper – fetch role + navigate (only once)
-  // ------------------------------------------------------------------ //
+  // Switch to signup if URL has ?signup
+  useEffect(() => {
+    if (location.search.includes("signup")) setIsLogin(false);
+  }, [location]);
+
+  // Redirect based on role from profiles.role
   const redirectToDashboard = async (userId: string) => {
     if (isRedirecting.current) return;
     isRedirecting.current = true;
 
     try {
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", userId)
         .maybeSingle();
 
+      if (error && error.code !== "PGRST116") { // Ignore "no rows" error
+        console.error("Profile fetch error:", error);
+        toast({
+          variant: "destructive",
+          title: "Profile Error",
+          description: "Could not load user role. Defaulting to user.",
+        });
+      }
+
       const role = profile?.role ?? "user";
+      console.log("Redirecting user:", userId, "Role:", role);
+
       navigate(role === "admin" ? "/dashboard/admin" : "/dashboard/user", {
         replace: true,
       });
-    } catch (error) {
-      console.error("Redirect error:", error);
+    } catch (err: any) {
+      console.error("Redirect failed:", err);
+      toast({
+        variant: "destructive",
+        title: "Redirect Error",
+        description: err.message || "Failed to redirect. Please try again.",
+      });
       isRedirecting.current = false;
     }
   };
 
-  // ------------------------------------------------------------------ //
-  // 3. Switch to signup mode when URL contains ?signup
-  // ------------------------------------------------------------------ //
-  useEffect(() => {
-    if (location.search.includes("signup")) setIsLogin(false);
-  }, [location]);
-
-  // ------------------------------------------------------------------ //
-  // 4. Auth handler (login OR signup)
-  // ------------------------------------------------------------------ //
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       if (isLogin) {
-        // ---------- LOGIN ----------
+        // LOGIN
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
 
-        // redirect is handled by onAuthStateChange
         toast({ title: "Welcome back!" });
+        // redirectToDashboard called via onAuthStateChange
       } else {
-        // ---------- SIGNUP ----------
+        // SIGNUP
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { data: { full_name: fullName, phone } },
         });
         if (error) throw error;
+        if (!data.user) throw new Error("User creation failed");
 
-        if (!data.user) {
-          throw new Error("User creation failed");
-        }
-
-        // 1. Create profile row **immediately** before redirect
-        await supabase
+        // Insert profile immediately (trigger may also fire, but upsert is safe)
+        const { error: profileError } = await supabase
           .from("profiles")
           .insert({
             id: data.user.id,
             full_name: fullName,
             phone,
+            email,
             role: "user",
-          })
-          .throwOnError();
+          });
+
+        if (profileError) {
+          console.error("Profile insert failed (non-fatal):", profileError);
+          // Don't block login — fallback to "user" role
+        } else {
+          console.log("Profile created for user:", data.user.id);
+        }
 
         toast({ title: "Account created! Signing you in..." });
-
-        // 2. Manually redirect since we just created the profile
         await redirectToDashboard(data.user.id);
       }
     } catch (err: any) {
-      toast({ variant: "destructive", title: "Error", description: err.message });
+      console.error("Auth error:", err);
+      toast({
+        variant: "destructive",
+        title: "Authentication Failed",
+        description: err.message || "Please check your credentials and try again.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // ------------------------------------------------------------------ //
-  // 5. UI (unchanged except button text)
-  // ------------------------------------------------------------------ //
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setEmail("");
@@ -172,7 +187,7 @@ const Auth = () => {
 
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-5">
-            {/* ---- SIGNUP ONLY FIELDS ---- */}
+            {/* SIGNUP FIELDS */}
             {!isLogin && (
               <>
                 <div className="space-y-2">
@@ -208,7 +223,7 @@ const Auth = () => {
               </>
             )}
 
-            {/* ---- EMAIL ---- */}
+            {/* EMAIL */}
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <div className="relative">
@@ -225,7 +240,7 @@ const Auth = () => {
               </div>
             </div>
 
-            {/* ---- PASSWORD ---- */}
+            {/* PASSWORD */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
