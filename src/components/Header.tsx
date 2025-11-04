@@ -1,6 +1,6 @@
 // src/components/Header.tsx
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -13,27 +13,43 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Activity, Shield, LogOut, Menu, User, Settings } from "lucide-react";
+import {
+  Activity,
+  Shield,
+  LogOut,
+  Menu,
+  User,
+  MessageCircle,
+  Info,
+  Home,
+  Bot,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+const PUBLIC_ROUTES = ["/", "/about", "/contact", "/assistant", "/auth"];
+const DASHBOARD_PREFIX = "/dashboard";
+
 const Header = () => {
-  const [user, setUser] = useState<any>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [open, setOpen] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isPublic = PUBLIC_ROUTES.includes(location.pathname) ||
+    location.pathname.startsWith("/profile/");
+
+  const isDashboard = location.pathname.startsWith(DASHBOARD_PREFIX);
+
+  /* ──────── AUTH & ROLE ──────── */
   useEffect(() => {
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setUser(session.user);
-        const { data } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .maybeSingle();
-        setIsAdmin(data?.role === "admin");
+        await loadRole(session.user.id);
       }
     };
     init();
@@ -42,21 +58,24 @@ const Header = () => {
       async (_event, session) => {
         if (session) {
           setUser(session.user);
-          const { data } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", session.user.id)
-            .maybeSingle();
-          setIsAdmin(data?.role === "admin");
+          await loadRole(session.user.id);
         } else {
           setUser(null);
           setIsAdmin(false);
         }
       }
     );
-
     return () => subscription.unsubscribe();
   }, []);
+
+  const loadRole = async (uid: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", uid)
+      .maybeSingle();
+    setIsAdmin(data?.role === "admin");
+  };
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -68,17 +87,28 @@ const Header = () => {
     }
   };
 
-  const navItems = [
-    { label: "Dashboard", path: "/dashboard/user", icon: Activity, show: !!user },
-    { label: "Admin Panel", path: "/dashboard/admin", icon: Shield, show: isAdmin },
-    { label: "Profile", path: "/dashboard/user/profile", icon: User, show: !!user },
-    { label: "QR Code", path: "/dashboard/user/qr", icon: Activity, show: !!user },
-  ].filter(item => item.show);
+  /* ──────── PUBLIC NAV ──────── */
+  const publicLinks = [
+    { label: "Home", path: "/", icon: Home },
+    { label: "Assistant", path: "/assistant", icon: Bot },
+    { label: "Contact Us", path: "/contact", icon: MessageCircle },
+    { label: "About Us", path: "/about", icon: Info },
+  ];
 
+  /* ──────── DASHBOARD NAV (sidebar) ──────── */
+  const dashboardLinks = [
+    { label: "Dashboard", path: "/dashboard/user", icon: Activity, show: true },
+    { label: "Profile", path: "/dashboard/user/profile", icon: User, show: true },
+    { label: "QR Code", path: "/dashboard/user/qr", icon: Activity, show: true },
+    { label: "Admin Panel", path: "/dashboard/admin", icon: Shield, show: isAdmin },
+  ].filter(i => i.show);
+
+  /* ──────── RENDER ──────── */
   return (
     <header className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo */}
+
+        {/* ── LOGO ── */}
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-full bg-primary/10">
             <Activity className="h-5 w-5 text-primary" />
@@ -86,24 +116,44 @@ const Header = () => {
           <span className="font-bold text-lg hidden sm:block">UhaiLink</span>
         </div>
 
-        {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-2">
-          {navItems.map((item) => (
-            <Button
-              key={item.path}
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(item.path)}
-              className="flex items-center gap-2"
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Button>
-          ))}
-        </nav>
+        {/* ── PUBLIC NAV (desktop) ── */}
+        {isPublic && !isDashboard && (
+          <nav className="hidden md:flex items-center gap-4">
+            {publicLinks.map((l) => (
+              <Button
+                key={l.path}
+                variant={location.pathname === l.path ? "default" : "ghost"}
+                size="sm"
+                onClick={() => navigate(l.path)}
+                className="flex items-center gap-2"
+              >
+                <l.icon className="h-4 w-4" />
+                {l.label}
+              </Button>
+            ))}
+          </nav>
+        )}
 
-        {/* User Menu (Desktop) */}
-        <div className="hidden md:block">
+        {/* ── DASHBOARD SIDEBAR (desktop) ── */}
+        {isDashboard && (
+          <nav className="hidden md:flex items-center gap-2">
+            {dashboardLinks.map((l) => (
+              <Button
+                key={l.path}
+                variant={location.pathname.startsWith(l.path) ? "default" : "ghost"}
+                size="sm"
+                onClick={() => navigate(l.path)}
+                className="flex items-center gap-2"
+              >
+                <l.icon className="h-4 w-4" />
+                {l.label}
+              </Button>
+            ))}
+          </nav>
+        )}
+
+        {/* ── USER MENU / SIGN IN (desktop) ── */}
+        <div className="hidden md:flex items-center gap-2">
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -141,15 +191,18 @@ const Header = () => {
           )}
         </div>
 
-        {/* Mobile Menu */}
-        <Sheet open={open} onOpenChange={setOpen}>
+        {/* ── MOBILE MENU ── */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild className="md:hidden">
             <Button variant="ghost" size="icon">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
+
           <SheetContent side="right" className="w-64">
             <div className="flex flex-col gap-4 mt-8">
+
+              {/* User info */}
               {user && (
                 <div className="flex items-center gap-3 px-3 py-2">
                   <Avatar className="h-10 w-10">
@@ -162,31 +215,68 @@ const Header = () => {
                 </div>
               )}
 
-              <nav className="flex flex-col gap-1">
-                {navItems.map((item) => (
-                  <Button
-                    key={item.path}
-                    variant="ghost"
-                    className="justify-start"
-                    onClick={() => {
-                      navigate(item.path);
-                      setOpen(false);
-                    }}
-                  >
-                    <item.icon className="h-4 w-4 mr-2" />
-                    {item.label}
-                  </Button>
-                ))}
-              </nav>
+              {/* PUBLIC LINKS */}
+              {isPublic && !isDashboard && (
+                <nav className="flex flex-col gap-1">
+                  {publicLinks.map((l) => (
+                    <Button
+                      key={l.path}
+                      variant={location.pathname === l.path ? "default" : "ghost"}
+                      className="justify-start"
+                      onClick={() => {
+                        navigate(l.path);
+                        setMobileOpen(false);
+                      }}
+                    >
+                      <l.icon className="h-4 w-4 mr-2" />
+                      {l.label}
+                    </Button>
+                  ))}
+                </nav>
+              )}
 
+              {/* DASHBOARD LINKS */}
+              {isDashboard && (
+                <nav className="flex flex-col gap-1">
+                  {dashboardLinks.map((l) => (
+                    <Button
+                      key={l.path}
+                      variant={location.pathname.startsWith(l.path) ? "default" : "ghost"}
+                      className="justify-start"
+                      onClick={() => {
+                        navigate(l.path);
+                        setMobileOpen(false);
+                      }}
+                    >
+                      <l.icon className="h-4 w-4 mr-2" />
+                      {l.label}
+                    </Button>
+                  ))}
+                </nav>
+              )}
+
+              {/* AUTH ACTIONS */}
               <div className="border-t pt-4 mt-4">
                 {user ? (
-                  <Button variant="destructive" className="w-full" onClick={handleSignOut}>
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    onClick={() => {
+                      handleSignOut();
+                      setMobileOpen(false);
+                    }}
+                  >
                     <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
                   </Button>
                 ) : (
-                  <Button className="w-full" onClick={() => navigate("/auth")}>
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      navigate("/auth");
+                      setMobileOpen(false);
+                    }}
+                  >
                     Sign In
                   </Button>
                 )}
