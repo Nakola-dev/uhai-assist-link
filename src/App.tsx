@@ -28,7 +28,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import UserProfilePage from "./pages/UserProfilePage";
 import UserQRPage from "./pages/UserQRPage";
 
-// ── Layout ───────────────────────────────────────────────────────────────
+// ── Layout & Components ─────────────────────────────────────────────────
 import Layout from "@/components/Layout";
 
 const queryClient = new QueryClient();
@@ -131,7 +131,7 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
           </Route>
 
-          {/* ── AUTH & PROFILE: HEADER ONLY ── */}
+          {/* ── AUTH & PROFILE VIEW: HEADER ONLY ── */}
           <Route
             element={
               <Layout showHeader={true} showFooter={false}>
@@ -142,10 +142,6 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile/:token" element={<ProfileView />} />
           </Route>
-
-          {/* ── ERROR & CATCH-ALL ── */}
-          <Route path="/404" element={<NotFound />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
 
           {/* ── FULL-SCREEN PAGES ── */}
           <Route path="/assistant" element={<Assistant />} />
@@ -177,6 +173,10 @@ const App = () => (
               </ProtectedRoute>
             }
           />
+
+          {/* ── ERROR & CATCH-ALL ── */}
+          <Route path="/404" element={<NotFound />} />
+          <Route path="*" element={<Navigate to="/404" replace />} />
 
         </Routes>
       </BrowserRouter>
