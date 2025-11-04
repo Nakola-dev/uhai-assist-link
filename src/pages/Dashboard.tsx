@@ -15,7 +15,7 @@ import {
   Shield,
   User,
   Heart,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import QRScanner from "@/components/QRScanner";
@@ -34,58 +34,86 @@ const Dashboard = () => {
   // Auth + Data Load
   useEffect(() => {
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.error("Session error:", sessionError);
+        toast({ title: "Session expired", variant: "destructive" });
         navigate("/auth", { replace: true });
         return;
       }
 
       setUser(session.user);
 
-      // Fetch profile (name + role)
-      const { data: prof } = await supabase
+      // Fetch profile with maybeSingle() → safe if row missing
+      const { data: prof, error: profError } = await supabase
         .from("profiles")
         .select("full_name, role")
         .eq("id", session.user.id)
-        .single();
+        .maybeSingle();
 
-      setProfile(prof);
-      setIsAdmin(prof?.role === "admin");
+      if (profError && profError.code !== "PGRST116") {
+        console.error("Profile fetch error:", profError);
+        toast({ title: "Profile Error", description: "Using fallback data.", variant: "destructive" });
+      }
 
-      // Fetch data
+      const userProfile = prof || { full_name: session.user.email, role: "user" };
+      setProfile(userProfile);
+      setIsAdmin(userProfile.role === "admin");
+
+      // Fetch public data
       await Promise.all([fetchOrganizations(), fetchTutorials()]);
       setLoading(false);
     };
 
     init();
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      if (!session) navigate("/auth", { replace: true });
+      if (!session) {
+        navigate("/auth", { replace: true });
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const fetchOrganizations = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("emergency_organizations")
       .select("*")
       .order("name");
-    setOrganizations(data || []);
+
+    if (error) {
+      console.error("Error fetching organizations:", error);
+      toast({ title: "Failed to load emergency contacts", variant: "destructive" });
+    } else {
+      setOrganizations(data || []);
+    }
   };
 
   const fetchTutorials = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("tutorials")
       .select("*")
       .order("created_at", { ascending: false });
-    setTutorials(data || []);
+
+    if (error) {
+      console.error("Error fetching tutorials:", error);
+      toast({ title: "Failed to load tutorials", variant: "destructive" });
+    } else {
+      setTutorials(data || []);
+    }
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    toast({ title: "Signed out" });
-    navigate("/auth", { replace: true });
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({ title: "Sign out failed", variant: "destructive" });
+    } else {
+      toast({ title: "Signed out" });
+      navigate("/auth", { replace: true });
+    }
   };
 
   if (loading) {
@@ -97,10 +125,12 @@ const Dashboard = () => {
   }
 
   const categories = ["CPR", "Choking", "Burns", "Bleeding", "Snake Bite"];
-  const tutorialsByCategory = categories.map(cat => ({
-    category: cat,
-    tutorials: tutorials.filter(t => t.category === cat)
-  })).filter(item => item.tutorials.length > 0);
+  const tutorialsByCategory = categories
+    .map((cat) => ({
+      category: cat,
+      tutorials: tutorials.filter((t) => t.category === cat),
+    }))
+    .filter((item) => item.tutorials.length > 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary-light/10 to-accent-light/10">
@@ -153,26 +183,9 @@ const Dashboard = () => {
             <CardContent>
               <Button
                 onClick={() => navigate("/assistant")}
-                size="lg"
-                className="w-full bg-primary hover:bg-primary/90 text-lg font-bold shadow-emergency"
+                className="w-full"
               >
-                Start AI Assistant
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* My QR */}
-          <Card className="hover:shadow-card transition-all">
-            <CardHeader>
-              <div className="p-3 rounded-full bg-secondary/10 w-fit">
-                <QrCode className="h-7 w-7 text-secondary" />
-              </div>
-              <CardTitle className="text-xl">My QR Code</CardTitle>
-              <CardDescription>Download & print for emergencies</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/dashboard/user/qr")}>
-                View QR Code
+                Launch Assistant
               </Button>
             </CardContent>
           </Card>
@@ -187,8 +200,32 @@ const Dashboard = () => {
               <CardDescription>Medical info & contacts</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/dashboard/user/profile")}>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate("/dashboard/user/profile")}
+              >
                 Edit Profile
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* QR Code */}
+          <Card className="hover:shadow-card transition-all">
+            <CardHeader>
+              <div className="p-3 rounded-full bg-secondary/10 w-fit">
+                <QrCode className="h-7 w-7 text-secondary" />
+              </div>
+              <CardTitle className="text-xl">My QR Code</CardTitle>
+              <CardDescription>Share in emergencies</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate("/dashboard/user/qr")}
+              >
+                View QR Code
               </Button>
             </CardContent>
           </Card>
@@ -285,7 +322,7 @@ const Dashboard = () => {
                       rel="noopener noreferrer"
                       className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
                     >
-                      Website →
+                      Website
                     </a>
                   )}
                 </CardContent>
