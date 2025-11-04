@@ -26,9 +26,11 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+/* ────────────────────── ROUTE HELPERS ────────────────────── */
 const PUBLIC_ROUTES = ["/", "/about", "/contact", "/assistant", "/auth"];
 const DASHBOARD_PREFIX = "/dashboard";
 
+/* ────────────────────── HEADER COMPONENT ────────────────────── */
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -40,16 +42,22 @@ const Header = () => {
 
   const isPublic = PUBLIC_ROUTES.includes(location.pathname) ||
     location.pathname.startsWith("/profile/");
-
   const isDashboard = location.pathname.startsWith(DASHBOARD_PREFIX);
 
-  /* ──────── AUTH & ROLE ──────── */
+  /* ──────── AUTH & ROLE (timeout-safe) ──────── */
   useEffect(() => {
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUser(session.user);
-        await loadRole(session.user.id);
+      try {
+        const { data: { session } } = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise((_, r) => setTimeout(() => r(new Error("session timeout")), 5000)),
+        ]);
+        if (session) {
+          setUser(session.user);
+          await loadRole(session.user.id);
+        }
+      } catch (e) {
+        console.error("Header init error:", e);
       }
     };
     init();
@@ -69,25 +77,34 @@ const Header = () => {
   }, []);
 
   const loadRole = async (uid: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", uid)
-      .maybeSingle();
-    setIsAdmin(data?.role === "admin");
-  };
-
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({ variant: "destructive", title: "Sign out failed" });
-    } else {
-      toast({ title: "Signed out" });
-      navigate("/auth");
+    try {
+      const { data } = await Promise.race([
+        supabase.from("profiles").select("role").eq("id", uid).maybeSingle(),
+        new Promise((_, r) => setTimeout(() => r(new Error("role timeout")), 5000)),
+      ]);
+      setIsAdmin(data?.role === "admin");
+    } catch (e) {
+      console.error("loadRole error:", e);
     }
   };
 
-  /* ──────── PUBLIC NAV ──────── */
+  /* ──────── SIGN OUT (timeout + force redirect) ──────── */
+  const handleSignOut = async () => {
+    try {
+      await Promise.race([
+        supabase.auth.signOut(),
+        new Promise((_, r) => setTimeout(() => r(new Error("sign-out timeout")), 5000)),
+      ]);
+      toast({ title: "Signed out" });
+    } catch (e) {
+      console.error("sign-out error:", e);
+      toast({ variant: "destructive", title: "Sign-out failed – redirecting…" });
+    } finally {
+      navigate("/auth", { replace: true });
+    }
+  };
+
+  /* ──────── NAVIGATION LINKS ──────── */
   const publicLinks = [
     { label: "Home", path: "/", icon: Home },
     { label: "Assistant", path: "/assistant", icon: Bot },
@@ -95,20 +112,19 @@ const Header = () => {
     { label: "About Us", path: "/about", icon: Info },
   ];
 
-  /* ──────── DASHBOARD NAV (sidebar) ──────── */
   const dashboardLinks = [
     { label: "Dashboard", path: "/dashboard/user", icon: Activity, show: true },
     { label: "Profile", path: "/dashboard/user/profile", icon: User, show: true },
     { label: "QR Code", path: "/dashboard/user/qr", icon: Activity, show: true },
     { label: "Admin Panel", path: "/dashboard/admin", icon: Shield, show: isAdmin },
-  ].filter(i => i.show);
+  ].filter((i) => i.show);
 
   /* ──────── RENDER ──────── */
   return (
     <header className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
 
-        {/* ── LOGO ── */}
+        {/* LOGO */}
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-full bg-primary/10">
             <Activity className="h-5 w-5 text-primary" />
@@ -116,7 +132,7 @@ const Header = () => {
           <span className="font-bold text-lg hidden sm:block">UhaiLink</span>
         </div>
 
-        {/* ── PUBLIC NAV (desktop) ── */}
+        {/* PUBLIC NAV – DESKTOP */}
         {isPublic && !isDashboard && (
           <nav className="hidden md:flex items-center gap-4">
             {publicLinks.map((l) => (
@@ -134,7 +150,7 @@ const Header = () => {
           </nav>
         )}
 
-        {/* ── DASHBOARD SIDEBAR (desktop) ── */}
+        {/* DASHBOARD NAV – DESKTOP */}
         {isDashboard && (
           <nav className="hidden md:flex items-center gap-2">
             {dashboardLinks.map((l) => (
@@ -152,7 +168,7 @@ const Header = () => {
           </nav>
         )}
 
-        {/* ── USER MENU / SIGN IN (desktop) ── */}
+        {/* USER MENU / SIGN-IN – DESKTOP */}
         <div className="hidden md:flex items-center gap-2">
           {user ? (
             <DropdownMenu>
@@ -191,7 +207,7 @@ const Header = () => {
           )}
         </div>
 
-        {/* ── MOBILE MENU ── */}
+        {/* MOBILE MENU */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild className="md:hidden">
             <Button variant="ghost" size="icon">
@@ -202,7 +218,7 @@ const Header = () => {
           <SheetContent side="right" className="w-64">
             <div className="flex flex-col gap-4 mt-8">
 
-              {/* User info */}
+              {/* USER INFO */}
               {user && (
                 <div className="flex items-center gap-3 px-3 py-2">
                   <Avatar className="h-10 w-10">
