@@ -3,26 +3,29 @@ import { supabase } from "@/integrations/supabase/client";
 export type UserRole = "admin" | "user";
 
 export async function getUserRole(userId: string): Promise<UserRole | null> {
+  // Changed: Query profiles instead of non-existent user_roles
   const { data, error } = await supabase
-    .from("user_roles")
+    .from("profiles")  // Align with schema
     .select("role")
-    .eq("user_id", userId)
+    .eq("id", userId)  // RLS-safe: Matches auth.uid() = id policy
     .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
+    console.error("Error fetching user role:", error);  // Add logging for debugging
     return null;
   }
 
-  return data.role as UserRole;
+  return data?.role as UserRole ?? null;  // Fallback to null if no row
 }
 
 export async function createUserRole(userId: string, role: UserRole = "user") {
+  // Changed: Insert/update profiles instead (idempotent to avoid duplicates)
   const { error } = await supabase
-    .from("user_roles")
-    .insert([{ user_id: userId, role }]);
+    .from("profiles")
+    .upsert([{ id: userId, role }], { onConflict: "id" });  // Upsert for safety
 
   if (error) {
-    console.error("Error creating user role:", error);
+    console.error("Error creating/updating user role:", error);
     return false;
   }
 
