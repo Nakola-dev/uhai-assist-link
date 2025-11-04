@@ -9,11 +9,25 @@ interface LayoutProps {
   showFooter?: boolean;
 }
 
+/**
+ * Global Layout Wrapper
+ * - Ensures consistent header/footer across pages
+ * - Responsive, mobile-first
+ * - RLS-safe (no data fetching here)
+ * - Used in App.tsx via <Outlet />
+ */
 const Layout = ({ children, showHeader = true, showFooter = true }: LayoutProps) => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-secondary-light/5 to-accent-light/5">
+      {/* Header */}
       {showHeader && <Header />}
-      <main className="flex-1">{children}</main>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col">
+        {children}
+      </main>
+
+      {/* Footer */}
       {showFooter && <Footer />}
     </div>
   );
