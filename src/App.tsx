@@ -33,7 +33,7 @@ import Layout from "@/components/Layout";
 
 const queryClient = new QueryClient();
 
-/* ──────────────────────── ProtectedRoute (role-aware) ──────────────────────── */
+/* ──────────────────────── ProtectedRoute (RLS-safe) ──────────────────────── */
 const ProtectedRoute = ({
   children,
   requiredRole,
@@ -41,56 +41,61 @@ const ProtectedRoute = ({
   children: React.ReactNode;
   requiredRole?: "admin" | "user";
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const [status, setStatus] = useState<"loading" | "authenticated" | "unauthenticated" | "no-access">("loading");
 
   useEffect(() => {
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        setIsAuthenticated(false);
+        setStatus("unauthenticated");
         return;
       }
-      setIsAuthenticated(true);
-      if (requiredRole) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .maybeSingle();
-        const userRole = profile?.role ?? "user";
-        setHasAccess(userRole === requiredRole);
-      } else {
-        setHasAccess(true);
+
+      if (!requiredRole) {
+        setStatus("authenticated");
+        return;
       }
+
+      // RLS-safe: only fetch own profile
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .maybeSingle();
+
+      if (error && error.code !== "PGRST116") {
+        console.error("Profile fetch error in ProtectedRoute:", error);
+      }
+
+      const role = profile?.role ?? "user";
+      setStatus(role === requiredRole ? "authenticated" : "no-access");
     };
+
     check();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (!session) {
-          setIsAuthenticated(false);
-          setHasAccess(false);
+          setStatus("unauthenticated");
+        } else if (requiredRole) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          const role = profile?.role ?? "user";
+          setStatus(role === requiredRole ? "authenticated" : "no-access");
         } else {
-          setIsAuthenticated(true);
-          if (requiredRole) {
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select("role")
-              .eq("id", session.user.id)
-              .maybeSingle();
-            const userRole = profile?.role ?? "user";
-            setHasAccess(userRole === requiredRole);
-          } else {
-            setHasAccess(true);
-          }
+          setStatus("authenticated");
         }
       }
     );
+
     return () => subscription.unsubscribe();
   }, [requiredRole]);
 
-  if (isAuthenticated === null || hasAccess === null) {
+  // ── UI States ──
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary-light/10 to-accent-light/10">
         <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -98,7 +103,8 @@ const ProtectedRoute = ({
     );
   }
 
-  if (!isAuthenticated) return <Navigate to="/auth" replace />;
+  if (status === "unauthenticated") return <Navigate to="/auth" replace />;
+  if (status === "no-access") return <Navigate to="/dashboard/user" replace />;
 
   return <>{children}</>;
 };
@@ -112,7 +118,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
 
-          {/* ── PUBLIC PAGES: FULL MARKETING LAYOUT (Header + Footer) ── */}
+          {/* ── PUBLIC PAGES: FULL MARKETING LAYOUT ── */}
           <Route
             element={
               <Layout showHeader={true} showFooter={true}>
@@ -125,7 +131,7 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
           </Route>
 
-          {/* ── AUTH & PROFILE: HEADER ONLY (No Footer) ── */}
+          {/* ── AUTH & PROFILE: HEADER ONLY ── */}
           <Route
             element={
               <Layout showHeader={true} showFooter={false}>
@@ -137,18 +143,18 @@ const App = () => (
             <Route path="/profile/:token" element={<ProfileView />} />
           </Route>
 
-          {/* ── ERROR & CATCH-ALL: NO LAYOUT ── */}
+          {/* ── ERROR & CATCH-ALL ── */}
           <Route path="/404" element={<NotFound />} />
           <Route path="*" element={<Navigate to="/404" replace />} />
 
-          {/* ── FULL-SCREEN PAGES: NO LAYOUT ── */}
+          {/* ── FULL-SCREEN PAGES ── */}
           <Route path="/assistant" element={<Assistant />} />
 
           {/* ── REDIRECTS ── */}
           <Route path="/dashboard" element={<Navigate to="/dashboard/user" replace />} />
           <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
 
-          {/* ── USER DASHBOARD: NO LAYOUT (Has its own header) ── */}
+          {/* ── USER DASHBOARD ── */}
           <Route
             path="/dashboard/user"
             element={
@@ -162,7 +168,7 @@ const App = () => (
             <Route path="qr" element={<UserQRPage />} />
           </Route>
 
-          {/* ── ADMIN DASHBOARD: NO LAYOUT ── */}
+          {/* ── ADMIN DASHBOARD ── */}
           <Route
             path="/dashboard/admin"
             element={
