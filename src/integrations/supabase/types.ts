@@ -7,39 +7,91 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
-      emergency_contacts: {
+      profiles: {
         Row: {
+          additional_notes: string | null
+          allergies: string | null
+          blood_type: string | null
+          chronic_conditions: string | null
+          created_at: string | null
+          date_of_birth: string | null
+          email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          full_name: string | null
+          id: string
+          medications: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          additional_notes?: string | null
+          allergies?: string | null
+          blood_type?: string | null
+          chronic_conditions?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          full_name?: string | null
+          id: string
+          medications?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          additional_notes?: string | null
+          allergies?: string | null
+          blood_type?: string | null
+          chronic_conditions?: string | null
+          created_at?: string | null
+          date_of_birth?: string | null
+          email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          full_name?: string | null
+          id?: string
+          medications?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      qr_access_tokens: {
+        Row: {
+          access_token: string
           created_at: string | null
           id: string
-          is_primary: boolean | null
-          name: string
-          phone: string
-          relationship: string
+          is_active: boolean | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
+          access_token: string
           created_at?: string | null
           id?: string
-          is_primary?: boolean | null
-          name: string
-          phone: string
-          relationship: string
+          is_active?: boolean | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
+          access_token?: string
           created_at?: string | null
           id?: string
-          is_primary?: boolean | null
-          name?: string
-          phone?: string
-          relationship?: string
+          is_active?: boolean | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -77,107 +129,11 @@ export type Database = {
         }
         Relationships: []
       }
-      medical_profiles: {
-        Row: {
-          additional_notes: string | null
-          allergies: string | null
-          blood_type: string | null
-          chronic_conditions: string | null
-          created_at: string | null
-          id: string
-          medications: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          additional_notes?: string | null
-          allergies?: string | null
-          blood_type?: string | null
-          chronic_conditions?: string | null
-          created_at?: string | null
-          id?: string
-          medications?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          additional_notes?: string | null
-          allergies?: string | null
-          blood_type?: string | null
-          chronic_conditions?: string | null
-          created_at?: string | null
-          id?: string
-          medications?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          created_at: string | null
-          date_of_birth: string | null
-          email: string
-          full_name: string | null
-          id: string
-          phone: string | null
-          role: Database["public"]["Enums"]["app_role"]
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          date_of_birth?: string | null
-          email: string
-          full_name?: string | null
-          id: string
-          phone?: string | null
-          role?: Database["public"]["Enums"]["app_role"]
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          date_of_birth?: string | null
-          email?: string
-          full_name?: string | null
-          id?: string
-          phone?: string | null
-          role?: Database["public"]["Enums"]["app_role"]
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      qr_access_tokens: {
-        Row: {
-          access_token: string
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          access_token: string
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          access_token?: string
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       tutorials: {
         Row: {
           category: string
           created_at: string | null
-          description: string
+          description: string | null
           id: string
           thumbnail: string | null
           title: string
@@ -187,7 +143,7 @@ export type Database = {
         Insert: {
           category: string
           created_at?: string | null
-          description: string
+          description?: string | null
           id?: string
           thumbnail?: string | null
           title: string
@@ -197,7 +153,7 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string | null
-          description?: string
+          description?: string | null
           id?: string
           thumbnail?: string | null
           title?: string
@@ -206,38 +162,22 @@ export type Database = {
         }
         Relationships: []
       }
-      user_roles: {
-        Row: {
-          created_at: string | null
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
+      is_admin: {
         Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
+          _uid: string
         }
         Returns: boolean
+      }
+      make_admin: {
+        Args: {
+          p_email: string
+        }
+        Returns: Json
       }
     }
     Enums: {
